@@ -49,7 +49,7 @@ func (b *backend) rotateRootUpdateHandler(ctx context.Context, req *logical.Requ
 	}
 
 	//  XXXX
-	oldconfig := config
+	oldconfig := *config
 	passwd, err := uuid.GenerateUUID()
 	if err != nil {
 		return nil, errwrap.Wrapf("error generating new password {{err}}", err)
