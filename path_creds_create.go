@@ -23,67 +23,67 @@ func (b *backend) pathCredsCreate() *framework.Path {
 		},
 
 		Callbacks: map[logical.Operation]framework.OperationFunc{
-			logical.ReadOperation: b.pathTokenRead,
+			logical.ReadOperation: b.credsReadHandler,
 		},
 	}
 }
 
-func (b *backend) pathTokenRead(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
+func (b *backend) credsReadHandler(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
 	name := d.Get("name").(string)
-
 	role, err := b.Role(ctx, req.Storage, name)
-	if err != nil {
-		return nil, errwrap.Wrapf("error retrieving role: {{err}}", err)
-	}
-	if role == nil {
-		return logical.ErrorResponse(fmt.Sprintf("role %q not found", name)), nil
-	}
-
-	// Determine if we have a lease configuration
-	leaseConfig, err := b.LeaseConfig(ctx, req.Storage)
 	if err != nil {
 		return nil, err
 	}
-	if leaseConfig == nil {
-		leaseConfig = &configLease{}
+	if role == nil {
+		return logical.ErrorResponse(fmt.Sprintf("role not found: %q", name)), nil
 	}
+	// XXXX check for allowed_roles
 
-	c, err := b.splunkClient(ctx, req.Storage)
+	c, err := b.GetConnection(ctx, req.Storage, role.Connection)
 	if err != nil {
 		return nil, err
 	}
 	if c == nil {
-		return nil, fmt.Errorf("error getting Splunk client")
+		return nil, fmt.Errorf("error getting Splunk connection for role %q: %q", name, role.Connection)
 	}
 
 	// Generate credentials
-	userName := fmt.Sprintf("vault-%s-%s-%d", name, req.DisplayName, time.Now().UnixNano())
-	passwd, err2 := uuid.GenerateUUID()
-	if err2 != nil {
-		return nil, errwrap.Wrapf("error generating new password {{err}}", err2)
+	userUUID, err := uuid.GenerateUUID()
+	if err != nil {
+		return nil, err
 	}
-	_, _, err3 := c.AccessControl.Authentication.Users.Create(&splunk.CreateUserOptions{
+	userName := fmt.Sprintf("vault_%s_%s_%s_%d", name, req.DisplayName, userUUID, time.Now().UnixNano())
+	passwd, err := uuid.GenerateUUID()
+	if err != nil {
+		return nil, errwrap.Wrapf("error generating new password {{err}}", err)
+	}
+	opts := splunk.CreateUserOptions{
 		Name:       userName,
 		Password:   passwd,
+		Roles:      role.Roles,
 		DefaultApp: role.DefaultApp,
 		Email:      role.Email,
-		Roles:      role.Roles,
-	})
-	if err3 != nil {
+		TZ:         role.TZ,
+	}
+	if _, _, err := c.AccessControl.Authentication.Users.Create(&opts); err != nil {
 		return nil, err
 	}
 
-	// Use the helper to create the secret
 	resp := b.Secret(secretCredsType).Response(map[string]interface{}{
-		"username": userName,
-		"password": passwd,
-		"roles":    role.Roles,
+		// return to user
+		"username":   userName,
+		"password":   passwd,
+		"roles":      role.Roles,
+		"connection": role.Connection,
+		"url":        c.Params().BaseURL,
 	}, map[string]interface{}{
-		"username": userName,
+		// store (with lease)
+		"username":   userName,
+		"role":       name,
+		"connection": role.Connection,
 	})
-	// XXX enforce
-	resp.Secret.TTL = leaseConfig.TTL
-	resp.Secret.MaxTTL = leaseConfig.MaxTTL
+	resp.Secret.TTL = role.DefaultTTL
+	resp.Secret.MaxTTL = role.MaxTTL
 
 	return resp, nil
 }

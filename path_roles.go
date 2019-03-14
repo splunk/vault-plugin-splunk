@@ -2,99 +2,50 @@ package splunk
 
 import (
 	"context"
-	"errors"
+	"fmt"
+	"time"
+
+	"github.com/fatih/structs"
 
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
 )
 
-func (b *backend) pathListRoles() *framework.Path {
+const rolesPrefix = "roles/"
+
+type roleEntry struct {
+	Connection string        `json:"connection" structs:"connection"`
+	DefaultTTL time.Duration `json:"default_ttl" structs:"default_ttl"`
+	MaxTTL     time.Duration `json:"max_ttl" structs:"max_ttl"`
+
+	// Splunk user attributes
+	Roles      []string `json:"roles" structs:"roles"`
+	DefaultApp string   `json:"default_app,omitempty" structs:"default_app"`
+	Email      string   `json:"email,omitempty" structs:"email"`
+	TZ         string   `json:"tz,omitempty" structs:"tz"`
+}
+
+func (role *roleEntry) toResponseData() map[string]interface{} {
+	respData := structs.New(role).Map()
+	// need to patch up TTLs because time.Duration gets garbled
+	respData["default_ttl"] = int64(role.DefaultTTL.Seconds())
+	respData["max_ttl"] = int64(role.MaxTTL.Seconds())
+	return respData
+}
+
+func (b *backend) pathRolesList() *framework.Path {
 	return &framework.Path{
-		Pattern: "role/?$",
+		Pattern: rolesPrefix + "?$",
 
 		Callbacks: map[logical.Operation]framework.OperationFunc{
-			logical.ListOperation: b.pathRoleList,
+			logical.ListOperation: b.rolesListHandler,
 		},
 	}
 }
 
-func (b *backend) pathRoles() *framework.Path {
-	return &framework.Path{
-		Pattern: "role/" + framework.GenericNameRegex("name"),
-		Fields: map[string]*framework.FieldSchema{
-			"name": &framework.FieldSchema{
-				Type:        framework.TypeString,
-				Description: "Name of the role",
-			},
-
-			"roles": &framework.FieldSchema{
-				Type:        framework.TypeCommaStringSlice,
-				Description: "Comma-separated string or list of roles as previously created in Splunk.",
-			},
-
-			"default_app": &framework.FieldSchema{
-				Type:        framework.TypeString,
-				Description: "User default app. Overrides the default app inherited from the user roles.",
-			},
-
-			"email": &framework.FieldSchema{
-				Type:        framework.TypeString,
-				Description: "User email address.",
-			},
-
-			"tz": &framework.FieldSchema{
-				Type:        framework.TypeString,
-				Description: "User time zone.",
-			},
-		},
-
-		Callbacks: map[logical.Operation]framework.OperationFunc{
-			logical.ReadOperation:   b.pathRolesRead,
-			logical.CreateOperation: b.pathRolesWrite,
-			logical.UpdateOperation: b.pathRolesWrite,
-			logical.DeleteOperation: b.pathRolesDelete,
-		},
-
-		ExistenceCheck: b.rolesExistenceCheck,
-
-		HelpSynopsis:    pathRoleHelpSyn,
-		HelpDescription: pathRoleHelpDesc,
-	}
-}
-
-// Returning 'true' forces an UpdateOperation, CreateOperation otherwise.
-func (b *backend) rolesExistenceCheck(ctx context.Context, req *logical.Request, d *framework.FieldData) (bool, error) {
-	name := d.Get("name").(string)
-	entry, err := b.Role(ctx, req.Storage, name)
-	if err != nil {
-		return false, err
-	}
-	return entry != nil, nil
-}
-
-func (b *backend) Role(ctx context.Context, storage logical.Storage, name string) (*roleConfig, error) {
-	if name == "" {
-		return nil, errors.New("invalid role name")
-	}
-
-	entry, err := storage.Get(ctx, "role/"+name)
-	if err != nil {
-		return nil, errwrap.Wrapf("error retrieving role: {{err}}", err)
-	}
-	if entry == nil {
-		return nil, nil
-	}
-
-	var result roleConfig
-	if err := entry.DecodeJSON(&result); err != nil {
-		return nil, err
-	}
-	return &result, nil
-}
-
-func (b *backend) pathRoleList(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
-	entries, err := req.Storage.List(ctx, "role/")
+func (b *backend) rolesListHandler(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
+	entries, err := req.Storage.List(ctx, rolesPrefix)
 	if err != nil {
 		return nil, err
 	}
@@ -102,9 +53,92 @@ func (b *backend) pathRoleList(ctx context.Context, req *logical.Request, d *fra
 	return logical.ListResponse(entries), nil
 }
 
-func (b *backend) pathRolesRead(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
-	name := d.Get("name").(string)
+func (b *backend) pathRoles() *framework.Path {
+	return &framework.Path{
+		Pattern: rolesPrefix + framework.GenericNameRegex("name"),
+		Fields: map[string]*framework.FieldSchema{
+			"name": &framework.FieldSchema{
+				Type:        framework.TypeString,
+				Description: "Name of the role",
+			},
+			"connection": &framework.FieldSchema{
+				Type:        framework.TypeString,
+				Description: "Name of the connection this role acts on",
+			},
+			"default_ttl": {
+				Type:        framework.TypeDurationSecond,
+				Description: "Default TTL for role",
+			},
+			"max_ttl": {
+				Type:        framework.TypeDurationSecond,
+				Description: "Maximum time a credential is valid for",
+			},
+			"roles": &framework.FieldSchema{
+				Type:        framework.TypeCommaStringSlice,
+				Description: "Comma-separated string or list of Splunk roles.",
+			},
+			"default_app": &framework.FieldSchema{
+				Type:        framework.TypeString,
+				Description: "User default app.  Overrides the default app inherited from the user roles.",
+			},
+			"email": &framework.FieldSchema{
+				Type:        framework.TypeString,
+				Description: "User email address.",
+			},
+			"tz": &framework.FieldSchema{
+				Type:        framework.TypeString,
+				Description: "User time zone.",
+			},
+		},
 
+		Callbacks: map[logical.Operation]framework.OperationFunc{
+			logical.ReadOperation:   b.rolesReadHandler,
+			logical.CreateOperation: b.rolesWriteHandler,
+			logical.UpdateOperation: b.rolesWriteHandler,
+			logical.DeleteOperation: b.rolesDeleteHandler,
+		},
+
+		ExistenceCheck: b.rolesExistenceCheckHandler,
+
+		HelpSynopsis:    pathRoleHelpSyn,
+		HelpDescription: pathRoleHelpDesc,
+	}
+}
+
+// Role returns nil if role named `name` does not exist in `storage`, otherwise
+// returns the role.  The second return value is non-nil on error.
+func (b *backend) Role(ctx context.Context, storage logical.Storage, name string) (*roleEntry, error) {
+	if name == "" {
+		return nil, fmt.Errorf("invalid role name")
+	}
+
+	entry, err := storage.Get(ctx, rolesPrefix+name)
+	if err != nil {
+		return nil, errwrap.Wrapf("error retrieving role: {{err}}", err)
+	}
+	if entry == nil {
+		return nil, nil
+	}
+
+	role := roleEntry{}
+	if err := entry.DecodeJSON(&role); err != nil {
+		return nil, err
+	}
+	return &role, nil
+}
+
+// Returning 'true' forces an UpdateOperation, CreateOperation otherwise.
+func (b *backend) rolesExistenceCheckHandler(ctx context.Context, req *logical.Request, d *framework.FieldData) (bool, error) {
+	name := d.Get("name").(string)
+	role, err := b.Role(ctx, req.Storage, name)
+	if err != nil {
+		return false, err
+	}
+	return role != nil, nil
+}
+
+func (b *backend) rolesReadHandler(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
+	name := d.Get("name").(string)
 	role, err := b.Role(ctx, req.Storage, name)
 	if err != nil {
 		return nil, err
@@ -113,65 +147,67 @@ func (b *backend) pathRolesRead(ctx context.Context, req *logical.Request, d *fr
 		return nil, nil
 	}
 
-	// Generate the response
 	resp := &logical.Response{
-		Data: map[string]interface{}{
-			"roles":       role.Roles,
-			"email":       role.Email,
-			"default_app": role.DefaultApp,
-			"tz":          role.TZ,
-		},
+		Data: role.toResponseData(),
 	}
 	return resp, nil
 }
 
-func (b *backend) pathRolesWrite(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
-	name := d.Get("name").(string)
-
+func (b *backend) rolesWriteHandler(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	name := data.Get("name").(string)
 	role, err := b.Role(ctx, req.Storage, name)
 	if err != nil {
 		return nil, err
 	}
 	if role == nil {
-		role = new(roleConfig)
+		role = &roleEntry{}
 	}
 
-	roles, ok := d.GetOk("roles")
-	if ok {
+	if connRaw, ok := getValue(data, req.Operation, "connection"); ok {
+		role.Connection = connRaw.(string)
+	}
+	if role.Connection == "" {
+		return logical.ErrorResponse("empty Splunk connection name"), nil
+	}
+	if defaultTTLRaw, ok := getValue(data, req.Operation, "default_ttl"); ok {
+		role.DefaultTTL = time.Duration(defaultTTLRaw.(int)) * time.Second
+	}
+	if maxTTLRaw, ok := getValue(data, req.Operation, "max_ttl"); ok {
+		role.MaxTTL = time.Duration(maxTTLRaw.(int)) * time.Second
+	}
+
+	if roles, ok := getValue(data, req.Operation, "roles"); ok {
 		role.Roles = roles.([]string)
 	}
 	if len(role.Roles) == 0 {
 		return logical.ErrorResponse("roles cannot be empty"), nil
 	}
-	role.DefaultApp = d.Get("default_app").(string)
-	role.Email = d.Get("email").(string)
-	role.TZ = d.Get("tz").(string)
+	if defaultAppRaw, ok := getValue(data, req.Operation, "default_app"); ok {
+		role.DefaultApp = defaultAppRaw.(string)
+	}
+	if emailRaw, ok := getValue(data, req.Operation, "email"); ok {
+		role.Email = emailRaw.(string)
+	}
+	if tzRaw, ok := getValue(data, req.Operation, "tz"); ok {
+		role.TZ = tzRaw.(string)
+	}
 
-	entry, err := logical.StorageEntryJSON("role/"+name, role)
+	entry, err := logical.StorageEntryJSON(rolesPrefix+name, role)
 	if err != nil {
 		return nil, err
 	}
-
 	if err := req.Storage.Put(ctx, entry); err != nil {
 		return nil, err
 	}
-
 	return nil, nil
 }
 
-func (b *backend) pathRolesDelete(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
+func (b *backend) rolesDeleteHandler(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
 	name := d.Get("name").(string)
-	if err := req.Storage.Delete(ctx, "role/"+name); err != nil {
+	if err := req.Storage.Delete(ctx, rolesPrefix+name); err != nil {
 		return nil, err
 	}
 	return nil, nil
-}
-
-type roleConfig struct {
-	Roles      []string `json:"roles"`
-	DefaultApp string   `json:"defaultApp"`
-	Email      string   `json:"email"`
-	TZ         string   `json:"tz"`
 }
 
 const pathRoleHelpSyn = `

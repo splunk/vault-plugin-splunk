@@ -15,16 +15,23 @@ var jsonOutputMode = outputMode{"json"}
 
 // API https://docs.splunk.com/Documentation/Splunk/latest/RESTREF/RESTprolog
 type API struct {
+	params        *APIParams
 	client        *Client
 	Introspection *IntrospectionService
 	AccessControl *AccessControlService
 	// XXX ...
 }
 
+func (api *API) Params() *APIParams {
+	return api.params
+}
+
 func (params *APIParams) NewAPI(ctx context.Context) *API {
 	client := params.NewClient(ctx)
+	paramsCopy := *params
 
 	return &API{
+		params:        &paramsCopy,
 		client:        client.Path("services/"),
 		Introspection: newIntrospectionService(client.New()),
 		AccessControl: newAccessControlService(client.New()),

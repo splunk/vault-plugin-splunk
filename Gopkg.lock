@@ -15,6 +15,14 @@
   revision = "803625baeddc3526d01d321b5066029f53eafc81"
 
 [[projects]]
+  branch = "master"
+  digest = "1:ef5b0622d834c139454148b8fd0c92bb314828900532b267ae62da9fec109866"
+  name = "github.com/armon/go-metrics"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "f0300d1749da6fa982027e449ec0c7a145510c3c"
+
+[[projects]]
   digest = "1:c47f4964978e211c6e566596ec6246c329912ea92e9bb99c00798bb4564c5b09"
   name = "github.com/armon/go-radix"
   packages = ["."]
@@ -29,6 +37,14 @@
   pruneopts = "UT"
   revision = "e2624bf29a7de45ab0802b09aea94ca0a7815c5f"
   version = "v1.2.0"
+
+[[projects]]
+  digest = "1:af43bdaaf86655a2343f113e9b293bbc16b12099eaeb223982bbe4d4c22ba14d"
+  name = "github.com/fatih/structs"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "4966fc68f5b7593aafa6cbbba2d65ec6e1416047"
+  version = "v1.1.0"
 
 [[projects]]
   digest = "1:f26d410f706e6bdfb1576cacf9e4bbd3add8b55a298bf90ab20f588854bad6e0"
@@ -186,10 +202,11 @@
   revision = "65a6292f0157eff210d03ed1bf6c59b190b8b906"
 
 [[projects]]
-  digest = "1:047c0527e977af64ea293cfd25b9a6a3dfc8412b8595aa608eb42cac364bd912"
+  digest = "1:cdbb62cbb178ebce3337ead1e3b382061c69fe889bbf6b5a9e548cdcc45eea3b"
   name = "github.com/hashicorp/vault"
   packages = [
     "api",
+    "builtin/logical/database/dbplugin",
     "helper/certutil",
     "helper/compressutil",
     "helper/consts",
@@ -284,14 +301,6 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "256dc444b735e061061cf46c809487313d5b0065"
-
-[[projects]]
-  branch = "master"
-  digest = "1:487f8646eb85669360ffa5e50de8369a91ff5f6afc017471a4dc8dab32607c2b"
-  name = "github.com/sebkl/splunk-golang"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "5ea88f4c7e42c182f9eee9c4120af05a8e508cb6"
 
 [[projects]]
   digest = "1:f0b918a9d2a0d3dcd073cbb908d81b0166af14b8bc765039673d1120c71e17cc"
@@ -447,14 +456,16 @@
   analyzer-version = 1
   input-imports = [
     "github.com/dghubble/sling",
+    "github.com/fatih/structs",
     "github.com/google/go-querystring/query",
     "github.com/hashicorp/errwrap",
     "github.com/hashicorp/go-hclog",
+    "github.com/hashicorp/go-uuid",
+    "github.com/hashicorp/vault/builtin/logical/database/dbplugin",
     "github.com/hashicorp/vault/helper/pluginutil",
     "github.com/hashicorp/vault/logical",
     "github.com/hashicorp/vault/logical/framework",
     "github.com/hashicorp/vault/logical/plugin",
-    "github.com/sebkl/splunk-golang",
     "golang.org/x/oauth2",
     "gotest.tools/assert",
   ]
