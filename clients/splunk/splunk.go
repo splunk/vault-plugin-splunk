@@ -22,10 +22,12 @@ type API struct {
 	// XXX ...
 }
 
+// Params returns the configuration for this API instance.
 func (api *API) Params() *APIParams {
 	return api.params
 }
 
+// NewAPI creates a new instance to access the API of the configured Splunk instance.
 func (params *APIParams) NewAPI(ctx context.Context) *API {
 	client := params.NewClient(ctx)
 	paramsCopy := *params
@@ -53,6 +55,9 @@ type Response struct {
 	HTTPResponse *http.Response
 }
 
+// The Paging type encapsulates paging information provided by the API.
+//
+// See also: https://docs.splunk.com/Documentation/Splunk/latest/RESTUM/RESTusing#Atom_Feed_response
 type Paging struct {
 	Offset  int `json:"offset"`
 	PerPage int `json:"perPage"`

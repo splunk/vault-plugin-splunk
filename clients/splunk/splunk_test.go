@@ -17,6 +17,6 @@ func TestOutputMode(t *testing.T) {
 }
 
 func TestAPIService(t *testing.T) {
-	svc := testAPIParams().NewAPI(testContext())
+	svc := TestGlobalSplunkClient(t)
 	assert.Assert(t, svc != nil)
 }

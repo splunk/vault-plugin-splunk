@@ -28,20 +28,14 @@ func (b *backend) pathResetConnection() *framework.Path {
 	}
 }
 
-// connectionResetHandler resets a plugin by closing the existing instance and
-// creating a new one.
+// connectionResetHandler resets a connection by clearing the existing instance
 func (b *backend) connectionResetHandler(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	name := data.Get("name").(string)
-	if name == "" {
-		return logical.ErrorResponse(respErrEmptyName), nil
-	}
-
-	// delete the entry in the connections cache.
-	if err := b.ClearConnection(name); err != nil {
+	config, err := connectionConfigLoad(ctx, req.Storage, name)
+	if err != nil {
 		return nil, err
 	}
-	// re-create connection, we don't need the object so throw away.
-	if _, err := b.GetConnection(ctx, req.Storage, name); err != nil {
+	if err := b.clearConnection(config.ID); err != nil {
 		return nil, err
 	}
 
@@ -53,6 +47,6 @@ Resets a Splunk connection.
 `
 
 const pathResetConnectionHelpDesc = `
-This path resets the Splunk connection by closing the existing connection
-and creating a new one.
+This path resets the Splunk connection by closing the existing
+connection.  Upon further access, new connections are established.
 `

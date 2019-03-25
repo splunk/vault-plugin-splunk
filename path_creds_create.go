@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/vault/helper/strutil"
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
 	"github.com/splunk/vault-plugin-splunk/clients/splunk"
@@ -25,26 +26,35 @@ func (b *backend) pathCredsCreate() *framework.Path {
 		Callbacks: map[logical.Operation]framework.OperationFunc{
 			logical.ReadOperation: b.credsReadHandler,
 		},
+
+		HelpSynopsis:    pathCredsCreateHelpSyn,
+		HelpDescription: pathCredsCreateHelpDesc,
 	}
 }
 
 func (b *backend) credsReadHandler(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
 	name := d.Get("name").(string)
-	role, err := b.Role(ctx, req.Storage, name)
+	role, err := roleConfigLoad(ctx, req.Storage, name)
 	if err != nil {
 		return nil, err
 	}
 	if role == nil {
 		return logical.ErrorResponse(fmt.Sprintf("role not found: %q", name)), nil
 	}
-	// XXXX check for allowed_roles
 
-	c, err := b.GetConnection(ctx, req.Storage, role.Connection)
+	config, err := connectionConfigLoad(ctx, req.Storage, role.Connection)
 	if err != nil {
 		return nil, err
 	}
-	if c == nil {
-		return nil, fmt.Errorf("error getting Splunk connection for role %q: %q", name, role.Connection)
+
+	// If role name isn't in allowed roles, send back a permission denied.
+	if !strutil.StrListContains(config.AllowedRoles, "*") && !strutil.StrListContainsGlob(config.AllowedRoles, name) {
+		return nil, fmt.Errorf("%q is not an allowed role for connection %q", name, role.Connection)
+	}
+
+	conn, err := b.ensureConnection(ctx, role.Connection, config)
+	if err != nil {
+		return nil, err
 	}
 
 	// Generate credentials
@@ -52,33 +62,33 @@ func (b *backend) credsReadHandler(ctx context.Context, req *logical.Request, d 
 	if err != nil {
 		return nil, err
 	}
-	userName := fmt.Sprintf("vault_%s_%s_%s_%d", name, req.DisplayName, userUUID, time.Now().UnixNano())
+	username := fmt.Sprintf("vault_%s_%s_%s_%d", name, req.DisplayName, userUUID, time.Now().UnixNano())
 	passwd, err := uuid.GenerateUUID()
 	if err != nil {
 		return nil, errwrap.Wrapf("error generating new password {{err}}", err)
 	}
 	opts := splunk.CreateUserOptions{
-		Name:       userName,
+		Name:       username,
 		Password:   passwd,
 		Roles:      role.Roles,
 		DefaultApp: role.DefaultApp,
 		Email:      role.Email,
 		TZ:         role.TZ,
 	}
-	if _, _, err := c.AccessControl.Authentication.Users.Create(&opts); err != nil {
+	if _, _, err := conn.AccessControl.Authentication.Users.Create(&opts); err != nil {
 		return nil, err
 	}
 
 	resp := b.Secret(secretCredsType).Response(map[string]interface{}{
 		// return to user
-		"username":   userName,
+		"username":   username,
 		"password":   passwd,
 		"roles":      role.Roles,
 		"connection": role.Connection,
-		"url":        c.Params().BaseURL,
+		"url":        conn.Params().BaseURL,
 	}, map[string]interface{}{
 		// store (with lease)
-		"username":   userName,
+		"username":   username,
 		"role":       name,
 		"connection": role.Connection,
 	})
@@ -87,3 +97,14 @@ func (b *backend) credsReadHandler(ctx context.Context, req *logical.Request, d 
 
 	return resp, nil
 }
+
+const pathCredsCreateHelpSyn = `
+Request Splunk credentials for a certain role.
+`
+
+const pathCredsCreateHelpDesc = `
+This path reads Splunk credentials for a certain role. The credentials
+will be generated on demand and will be automatically revoked when
+their lease expires.  Leases can be extended until a configured
+maximum life-time.
+`

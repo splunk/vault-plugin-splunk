@@ -2,6 +2,9 @@ VERSION         := 0.1.0
 SHORT_COMMIT    := $(shell git rev-parse --short HEAD 2>/dev/null || echo dev)
 GO_VERSION      := $(shell go version | awk '{ print $$3}' | sed 's/^go//')
 
+# XXX BUG(mweber) "go env GOBIN" is empty?
+GOBIN := $(shell go env GOPATH)/bin
+
 LD_FLAGS_PKG ?= main
 LD_FLAGS :=
 LD_FLAGS +=  -X "$(LD_FLAGS_PKG).version=$(VERSION)"
@@ -9,31 +12,44 @@ LD_FLAGS +=  -X "$(LD_FLAGS_PKG).commit=$(SHORT_COMMIT)"
 LD_FLAGS +=  -X "$(LD_FLAGS_PKG).goVersion=$(GO_VERSION)"
 
 .PHONY: all
-all: get build lint test
+all: dep build lint test
 
-.PHONY: get
-get:
+.PHONY: dep
+dep: prereq
 	dep ensure
 
 .PHONY: build
-build:
+build: dep vault.hcl
 	go install -ldflags '$(LD_FLAGS)' ./...
 
+vault.hcl: vault.hcl.in
+	sed -e 's;@@GOBIN@@;$(GOBIN);g' < $< > $@
+
+.PHONY: dev
+dev: build
+	@test -n "$$VAULT_ADDR" || { echo 'error: environment variable VAULT_ADDR not set'; exit 1; }
+	@test -f ~/.vault-token || { echo 'error: ~/.vault-token does not exist.  Use "vault auth ..." to login.'; exit 1; }
+	SHASUM=$$(shasum -a 256 "$(GOBIN)/vault-plugin-splunk" | cut -d " " -f1); \
+		vault write sys/plugins/catalog/secret/vault-plugin-splunk sha_256="$$SHASUM" command="vault-plugin-splunk"
+	vault secrets enable -path=splunk -plugin-name=vault-plugin-splunk plugin || true
+	curl -vk -H "X-Vault-Token: $$(cat ~/.vault-token)" $$VAULT_ADDR/v1/sys/plugins/reload/backend -XPUT -d '{"plugin":"vault-plugin-splunk"}'
+
 .PHONY: test
-test:
+test: build
+	@test -n "$$SPLUNK_ADDR" || { echo 'warning: SPLUNK_ADDR not set, creating new Splunk instances.  This will be slow.'; }
 	go test -v ./...
 
 .PHONY: lint
-lint:
+lint: dep
 	go list ./... | grep -v vendor | xargs go vet
 	go list ./... | grep -v vendor | xargs golint
 
-.PHONY: install
-install:
+.PHONY: prereq
+prereq:
 	go get github.com/golang/dep/cmd/dep
 	go get golang.org/x/lint/golint
 
 .PHONY: clean
 clean:
 	# XXX clean
-	rm -rf vendor/
+	rm -rf vault.hcl vendor/

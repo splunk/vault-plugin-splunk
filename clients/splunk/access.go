@@ -1,5 +1,6 @@
 package splunk
 
+// AccessControlService encapsulates the Access Control portion of the Splunk API.
 type AccessControlService struct {
 	client         *Client
 	Authentication *AuthenticationService

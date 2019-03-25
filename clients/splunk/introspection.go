@@ -1,5 +1,6 @@
 package splunk
 
+// IntrospectionService encapsulates the Introspection portion of the Splunk API.
 type IntrospectionService struct {
 	client *Client
 }
@@ -10,6 +11,9 @@ func newIntrospectionService(client *Client) *IntrospectionService {
 	}
 }
 
+// ServerInfoEntry is returned from ServerInfo() calls.
+//
+// BUG(mweber): this type is incomplete.
 type ServerInfoEntry struct {
 	EntryMetadata
 	Content struct {
@@ -30,6 +34,7 @@ type ServerInfoEntry struct {
 	} `json:"content"`
 }
 
+// ServerInfo returns information about the Splunk instance.
 func (s *IntrospectionService) ServerInfo() ([]ServerInfoEntry, *Response, error) {
 	info := make([]ServerInfoEntry, 0)
 	resp, err := Receive(s.client.New().Get("server/info"), &info)

@@ -2,56 +2,13 @@ package splunk
 
 import (
 	"context"
-	"fmt"
 	"time"
 
-	"github.com/fatih/structs"
-
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
 )
 
 const rolesPrefix = "roles/"
-
-type roleEntry struct {
-	Connection string        `json:"connection" structs:"connection"`
-	DefaultTTL time.Duration `json:"default_ttl" structs:"default_ttl"`
-	MaxTTL     time.Duration `json:"max_ttl" structs:"max_ttl"`
-
-	// Splunk user attributes
-	Roles      []string `json:"roles" structs:"roles"`
-	DefaultApp string   `json:"default_app,omitempty" structs:"default_app"`
-	Email      string   `json:"email,omitempty" structs:"email"`
-	TZ         string   `json:"tz,omitempty" structs:"tz"`
-}
-
-func (role *roleEntry) toResponseData() map[string]interface{} {
-	respData := structs.New(role).Map()
-	// need to patch up TTLs because time.Duration gets garbled
-	respData["default_ttl"] = int64(role.DefaultTTL.Seconds())
-	respData["max_ttl"] = int64(role.MaxTTL.Seconds())
-	return respData
-}
-
-func (b *backend) pathRolesList() *framework.Path {
-	return &framework.Path{
-		Pattern: rolesPrefix + "?$",
-
-		Callbacks: map[logical.Operation]framework.OperationFunc{
-			logical.ListOperation: b.rolesListHandler,
-		},
-	}
-}
-
-func (b *backend) rolesListHandler(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
-	entries, err := req.Storage.List(ctx, rolesPrefix)
-	if err != nil {
-		return nil, err
-	}
-
-	return logical.ListResponse(entries), nil
-}
 
 func (b *backend) pathRoles() *framework.Path {
 	return &framework.Path{
@@ -63,7 +20,7 @@ func (b *backend) pathRoles() *framework.Path {
 			},
 			"connection": &framework.FieldSchema{
 				Type:        framework.TypeString,
-				Description: "Name of the connection this role acts on",
+				Description: "Name of the Splunk connection this role acts on",
 			},
 			"default_ttl": {
 				Type:        framework.TypeDurationSecond,
@@ -78,8 +35,9 @@ func (b *backend) pathRoles() *framework.Path {
 				Description: "Comma-separated string or list of Splunk roles.",
 			},
 			"default_app": &framework.FieldSchema{
-				Type:        framework.TypeString,
-				Description: "User default app.  Overrides the default app inherited from the user roles.",
+				Type: framework.TypeString,
+				Description: trimIndent(`
+				User default app.  Overrides the default app inherited from the user roles.`),
 			},
 			"email": &framework.FieldSchema{
 				Type:        framework.TypeString,
@@ -90,47 +48,22 @@ func (b *backend) pathRoles() *framework.Path {
 				Description: "User time zone.",
 			},
 		},
-
 		Callbacks: map[logical.Operation]framework.OperationFunc{
 			logical.ReadOperation:   b.rolesReadHandler,
 			logical.CreateOperation: b.rolesWriteHandler,
 			logical.UpdateOperation: b.rolesWriteHandler,
 			logical.DeleteOperation: b.rolesDeleteHandler,
 		},
-
-		ExistenceCheck: b.rolesExistenceCheckHandler,
-
+		ExistenceCheck:  b.rolesExistenceCheckHandler,
 		HelpSynopsis:    pathRoleHelpSyn,
 		HelpDescription: pathRoleHelpDesc,
 	}
 }
 
-// Role returns nil if role named `name` does not exist in `storage`, otherwise
-// returns the role.  The second return value is non-nil on error.
-func (b *backend) Role(ctx context.Context, storage logical.Storage, name string) (*roleEntry, error) {
-	if name == "" {
-		return nil, fmt.Errorf("invalid role name")
-	}
-
-	entry, err := storage.Get(ctx, rolesPrefix+name)
-	if err != nil {
-		return nil, errwrap.Wrapf("error retrieving role: {{err}}", err)
-	}
-	if entry == nil {
-		return nil, nil
-	}
-
-	role := roleEntry{}
-	if err := entry.DecodeJSON(&role); err != nil {
-		return nil, err
-	}
-	return &role, nil
-}
-
 // Returning 'true' forces an UpdateOperation, CreateOperation otherwise.
 func (b *backend) rolesExistenceCheckHandler(ctx context.Context, req *logical.Request, d *framework.FieldData) (bool, error) {
 	name := d.Get("name").(string)
-	role, err := b.Role(ctx, req.Storage, name)
+	role, err := roleConfigLoad(ctx, req.Storage, name)
 	if err != nil {
 		return false, err
 	}
@@ -139,7 +72,7 @@ func (b *backend) rolesExistenceCheckHandler(ctx context.Context, req *logical.R
 
 func (b *backend) rolesReadHandler(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
 	name := d.Get("name").(string)
-	role, err := b.Role(ctx, req.Storage, name)
+	role, err := roleConfigLoad(ctx, req.Storage, name)
 	if err != nil {
 		return nil, err
 	}
@@ -155,12 +88,12 @@ func (b *backend) rolesReadHandler(ctx context.Context, req *logical.Request, d 
 
 func (b *backend) rolesWriteHandler(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	name := data.Get("name").(string)
-	role, err := b.Role(ctx, req.Storage, name)
+	role, err := roleConfigLoad(ctx, req.Storage, name)
 	if err != nil {
 		return nil, err
 	}
 	if role == nil {
-		role = &roleEntry{}
+		role = &roleConfig{}
 	}
 
 	if connRaw, ok := getValue(data, req.Operation, "connection"); ok {
@@ -192,11 +125,7 @@ func (b *backend) rolesWriteHandler(ctx context.Context, req *logical.Request, d
 		role.TZ = tzRaw.(string)
 	}
 
-	entry, err := logical.StorageEntryJSON(rolesPrefix+name, role)
-	if err != nil {
-		return nil, err
-	}
-	if err := req.Storage.Put(ctx, entry); err != nil {
+	if err := role.store(ctx, req.Storage, name); err != nil {
 		return nil, err
 	}
 	return nil, nil
@@ -210,6 +139,26 @@ func (b *backend) rolesDeleteHandler(ctx context.Context, req *logical.Request, 
 	return nil, nil
 }
 
+func (b *backend) pathRolesList() *framework.Path {
+	return &framework.Path{
+		Pattern: rolesPrefix + "?$",
+		Callbacks: map[logical.Operation]framework.OperationFunc{
+			logical.ListOperation: b.rolesListHandler,
+		},
+		HelpSynopsis:    pathRoleHelpSyn,
+		HelpDescription: pathRoleHelpDesc,
+	}
+}
+
+func (b *backend) rolesListHandler(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
+	entries, err := req.Storage.List(ctx, rolesPrefix)
+	if err != nil {
+		return nil, err
+	}
+
+	return logical.ListResponse(entries), nil
+}
+
 const pathRoleHelpSyn = `
 Manage the roles that can be created with this backend.
 `
@@ -217,5 +166,6 @@ Manage the roles that can be created with this backend.
 const pathRoleHelpDesc = `
 This path lets you manage the roles that can be created with this backend.
 
-XXX
+See the documentation for roles/name for a full list of accepted
+connection details.
 `

@@ -2,7 +2,6 @@ package splunk
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/go-uuid"
@@ -31,25 +30,16 @@ func (b *backend) pathRotateRoot() *framework.Path {
 
 func (b *backend) rotateRootUpdateHandler(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	name := data.Get("name").(string)
-	config, err := b.connectionConfig(ctx, req.Storage, name)
+	oldConfig, err := connectionConfigLoad(ctx, req.Storage, name)
+	if err != nil {
+		return nil, err
+	}
+	conn, err := b.ensureConnection(ctx, name, oldConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	// Take out the backend lock since we are swapping out the connection
-	b.Lock()
-	defer b.Unlock()
-
-	client, err := b.connectionUnlocked(ctx, req.Storage, name)
-	if err != nil {
-		return nil, err
-	}
-	if client == nil {
-		return nil, fmt.Errorf("nil Splunk client")
-	}
-
-	//  XXXX
-	oldconfig := *config
+	config := *oldConfig
 	passwd, err := uuid.GenerateUUID()
 	if err != nil {
 		return nil, errwrap.Wrapf("error generating new password {{err}}", err)
@@ -57,38 +47,27 @@ func (b *backend) rotateRootUpdateHandler(ctx context.Context, req *logical.Requ
 	config.Password = passwd
 
 	opts := splunk.UpdateUserOptions{
-		OldPassword: oldconfig.Password,
+		OldPassword: oldConfig.Password,
 		Password:    config.Password,
 	}
-	_, _, err = client.AccessControl.Authentication.Users.Update(config.Username, &opts)
-	if err != nil {
+
+	// XXX write WAL in case we restart between successful update and store
+	if _, _, err := conn.AccessControl.Authentication.Users.Update(config.Username, &opts); err != nil {
 		return nil, errwrap.Wrapf("error updating password: {{err}}", err)
 	}
 
-	newEntry, err := logical.StorageEntryJSON(fmt.Sprintf("config/%s", name), config)
-	if err != nil {
-		return nil, errwrap.Wrapf(fmt.Sprintf("error generating new config/%s JSON: {{err}}", name), err)
+	if err := config.store(ctx, req.Storage, name); err != nil {
+		return nil, err
 	}
-	if err := req.Storage.Put(ctx, newEntry); err != nil {
-		return nil, errwrap.Wrapf(fmt.Sprintf("error saving new config/%s: {{err}}", name), err)
-	}
-
-	b.clearConnectionUnlocked(name) // XXXX ignore errors
-	// if config.Verify {
-	// 	b.verifyConnection(name)
-	// }
 
 	resp := &logical.Response{
-		Data: map[string]interface{}{
-			"username": config.Username,
-			"password": config.Password, // XXX DEBUG only, remove
-		},
+		Data: config.toMinimalResponseData(),
 	}
 	return resp, nil
 }
 
 const pathRotateRootHelpSyn = `
-Request to rotate the Splunk credentials for a certain Splunk connection
+Request to rotate the Splunk credentials for a Splunk connection.
 `
 
 const pathRotateRootHelpDesc = `

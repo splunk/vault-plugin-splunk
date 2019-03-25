@@ -4,6 +4,7 @@ import (
 	"net/url"
 )
 
+// UserService encapsulates the User portion of the Splunk API.
 type UserService struct {
 	client *Client
 }
@@ -14,6 +15,7 @@ func newUserService(client *Client) *UserService {
 	}
 }
 
+// UserEntry is returned from Users() calls.
 type UserEntry struct {
 	EntryMetadata
 	Name    string `json:"name"`
@@ -31,12 +33,14 @@ type UserEntry struct {
 	} `json:"content"`
 }
 
+// Users returns information about all users.
 func (s *UserService) Users() ([]UserEntry, *Response, error) {
 	users := make([]UserEntry, 0)
 	resp, err := Receive(s.client.New().Get("users"), &users)
 	return users, resp, err
 }
 
+// The CreateUserOptions type provides options for creating a new user.
 type CreateUserOptions struct {
 	CreateRole            *bool    `url:"createrole,omitempty"`
 	DefaultApp            string   `url:"defaultApp,omitempty"`
@@ -50,15 +54,17 @@ type CreateUserOptions struct {
 	TZ                    string   `url:"tz,omitempty"`
 }
 
+// Create creates a new user, and returns additional meta data.
 func (s *UserService) Create(opts *CreateUserOptions) (*UserEntry, *Response, error) {
 	users := make([]UserEntry, 0)
 	resp, err := Receive(s.client.New().BodyForm(opts).Post("users"), &users)
-	if len(users) == 0 {
+	if err != nil || len(users) == 0 {
 		return nil, resp, err
 	}
 	return &users[0], resp, err
 }
 
+// The UpdateUserOptions type provides options for updating a user.
 type UpdateUserOptions struct {
 	DefaultApp            string   `url:"defaultApp,omitempty"`
 	Email                 string   `url:"email,omitempty"`
@@ -71,19 +77,21 @@ type UpdateUserOptions struct {
 	TZ                    string   `url:"tz,omitempty"`
 }
 
+// Update updates a user, and returns additional meta data.
 func (s *UserService) Update(user string, opts *UpdateUserOptions) (*UserEntry, *Response, error) {
 	users := make([]UserEntry, 0)
 	resp, err := Receive(s.client.New().BodyForm(opts).Path("users/").Post(url.PathEscape(user)), &users)
-	if len(users) == 0 {
+	if err != nil || len(users) == 0 {
 		return nil, resp, err
 	}
 	return &users[0], resp, err
 }
 
+// Delete deletes a user, and returns additional meta data.
 func (s *UserService) Delete(user string) (*UserEntry, *Response, error) {
 	users := make([]UserEntry, 0)
 	resp, err := Receive(s.client.New().Path("users/").Delete(url.PathEscape(user)), &users)
-	if len(users) == 0 {
+	if err != nil || len(users) == 0 {
 		return nil, resp, err
 	}
 	return &users[0], resp, err

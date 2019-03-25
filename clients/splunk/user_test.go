@@ -2,50 +2,57 @@ package splunk
 
 import (
 	"fmt"
+	"log"
 	"testing"
+
+	"github.com/hashicorp/go-uuid"
 
 	"gotest.tools/assert"
 )
 
-func testUserService() *UserService {
-	return testAPIParams().NewAPI(testContext()).AccessControl.Authentication.Users
-}
-
-func testUserParams(name string) *CreateUserOptions {
-	return &CreateUserOptions{
-		Name:       name,
-		Email:      fmt.Sprintf("%s@example.com", name),
-		Password:   "test1234",
-		CreateRole: Bool(true),
-		Roles:      []string{fmt.Sprintf("user-%s", name)},
-	}
-}
+const defaultAdminUser = "admin"
 
 func TestUserService_Users(t *testing.T) {
-	us := testUserService()
+	us := testUserService(t)
 
 	users, _, err := us.Users()
 	assert.NilError(t, err)
-	assert.Equal(t, len(users), 1)
+	for ii := range users {
+		if users[ii].Name == defaultAdminUser {
+			return
+		}
+	}
+	t.Fail()
 }
 
 func TestUserService_Create(t *testing.T) {
-	userSvc := testUserService()
-	params := testUserParams("testuser97")
+	userSvc := testUserService(t)
+	params := testUserParams("")
 
 	user, _, err := userSvc.Create(params)
-	defer userSvc.Delete(params.Name)
+	defer userSvc.Delete(user.Name)
 	assert.NilError(t, err)
 	assert.Equal(t, user.Name, params.Name)
 	assert.Equal(t, user.Content.Email, params.Email)
 }
 
-func TestUserService_Update_Email(t *testing.T) {
-	userSvc := testUserService()
-	params := testUserParams("testuser96")
+func TestUserService_Delete(t *testing.T) {
+	userSvc := testUserService(t)
+	params := testUserParams("")
 
 	user, _, err := userSvc.Create(params)
-	defer userSvc.Delete(params.Name)
+	assert.NilError(t, err)
+
+	_, _, err = userSvc.Delete(user.Name)
+	assert.NilError(t, err)
+}
+
+func TestUserService_Update_Email(t *testing.T) {
+	userSvc := testUserService(t)
+	params := testUserParams("")
+
+	user, _, err := userSvc.Create(params)
+	defer userSvc.Delete(user.Name)
 	assert.NilError(t, err)
 	assert.Equal(t, user.Name, params.Name)
 
@@ -57,11 +64,11 @@ func TestUserService_Update_Email(t *testing.T) {
 }
 
 func TestUserService_Update_Password(t *testing.T) {
-	userSvc := testUserService()
-	params := testUserParams("testuser99")
+	userSvc := testUserService(t)
+	params := testUserParams("")
 
 	user, _, err := userSvc.Create(params)
-	defer userSvc.Delete(params.Name)
+	defer userSvc.Delete(user.Name)
 	assert.NilError(t, err)
 	assert.Equal(t, user.Name, params.Name)
 
@@ -72,37 +79,51 @@ func TestUserService_Update_Password(t *testing.T) {
 }
 
 func TestUserService_Update_MissingOldPassword(t *testing.T) {
-	userSvc := testUserService()
+	userSvc := testUserService(t)
+	self := testGlobalSplunkConn.Params().ClientID
 
-	_, _, err := userSvc.Update(username, &UpdateUserOptions{
+	_, _, err := userSvc.Update(self, &UpdateUserOptions{
 		Password: "changed1234",
 	})
 	assert.Error(t, err, "ERROR splunk: Missing old password.")
 }
 
 func TestUserService_Update_OwnPassword(t *testing.T) {
-	userSvc := testUserService()
+	userSvc := testUserService(t)
 
-	_, _, err := userSvc.Update(username, &UpdateUserOptions{
-		OldPassword: password,
+	params := testUserParams("")
+	user, _, err := userSvc.Create(params)
+	defer userSvc.Delete(user.Name)
+
+	_, _, err = userSvc.Update(user.Name, &UpdateUserOptions{
+		OldPassword: params.Password,
 		Password:    "password",
-	})
-	assert.NilError(t, err)
-	_, _, err = userSvc.Update(username, &UpdateUserOptions{
-		OldPassword: "password",
-		Password:    password,
 	})
 	assert.NilError(t, err)
 }
 
-func TestUserService_Delete(t *testing.T) {
-	userSvc := testUserService()
-	params := testUserParams("testuser98")
+// Helpers
+func testUserService(t *testing.T) *UserService {
+	return TestGlobalSplunkClient(t).AccessControl.Authentication.Users
+}
 
-	user, _, err := userSvc.Create(params)
-	assert.NilError(t, err)
-	assert.Equal(t, user.Content.Email, params.Email)
+func testNewUsername(prefix string) string {
+	id, err := uuid.GenerateUUID()
+	if err != nil {
+		log.Fatal(err)
+	}
+	name := fmt.Sprintf("%s%s", prefix, id)
+	return name
+}
 
-	_, _, err = userSvc.Delete(params.Name)
-	assert.NilError(t, err)
+func testUserParams(name string) *CreateUserOptions {
+	if name == "" {
+		name = testNewUsername("testuser-")
+	}
+	return &CreateUserOptions{
+		Name:       name,
+		Email:      fmt.Sprintf("%s@example.com", name),
+		Password:   "test1234",
+		CreateRole: Bool(true),
+	}
 }

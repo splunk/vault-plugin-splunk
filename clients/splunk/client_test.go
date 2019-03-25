@@ -7,9 +7,9 @@ import (
 )
 
 func TestTokenSource_Token(t *testing.T) {
-	ctx := testContext()
-	params := testAPIParams()
-	params.DefaultAPIParams(ctx)
+	ctx := TestDefaultContext()
+	conn := TestGlobalSplunkClient(t)
+	params := conn.Params()
 	tok, err := params.TokenSource(ctx).Token()
 	assert.NilError(t, err)
 	assert.Assert(t, len(tok.AccessToken) > 0)

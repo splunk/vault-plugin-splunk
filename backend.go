@@ -2,19 +2,21 @@ package splunk
 
 import (
 	"context"
-	"crypto/tls"
-	"net/http"
-	"reflect"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
 	"github.com/splunk/vault-plugin-splunk/clients/splunk"
-	"golang.org/x/oauth2"
 )
 
+type backend struct {
+	*framework.Backend
+	rotateLock sync.Mutex
+	conn       *sync.Map
+}
+
+// Factory is the factory function to create a Splunk backend.
 func Factory(ctx context.Context, conf *logical.BackendConfig) (logical.Backend, error) {
 	b := newBackend()
 	if err := b.Setup(ctx, conf); err != nil {
@@ -44,108 +46,42 @@ func newBackend() logical.Backend {
 		Secrets: []*framework.Secret{
 			b.pathSecretCreds(),
 		},
-		// Clean: XXXX
-		// Invalidate: XXXX
-		BackendType: logical.TypeLogical,
+		WALRollback:       b.walRollback,
+		WALRollbackMinAge: walRollbackMinAge,
+		BackendType:       logical.TypeLogical,
 	}
-	b.connections = make(map[string]*splunk.API)
+	b.conn = new(sync.Map)
 	return &b
 }
 
-type backend struct {
-	*framework.Backend
-	// Mutex to protect access to Splunk clients and client configs
-	sync.RWMutex
-	connections map[string]*splunk.API
-}
-
-// XXXX ensureConnection
-func (b *backend) GetConnection(ctx context.Context, s logical.Storage, name string) (*splunk.API, error) {
-	b.RLock()
-	if conn, ok := b.connections[name]; ok {
-		b.RUnlock()
-		return conn, nil
+func (b *backend) ensureConnection(ctx context.Context, name string, config *splunkConfig) (*splunk.API, error) {
+	if conn, ok := b.conn.Load(config.ID); ok {
+		return conn.(*splunk.API), nil
 	}
 
-	// Upgrade the lock for writing
-	b.RUnlock()
-	b.Lock()
-	defer b.Unlock()
-
-	return b.connectionUnlocked(ctx, s, name)
-}
-
-func (b *backend) connectionUnlocked(ctx context.Context, s logical.Storage, name string) (*splunk.API, error) {
-	if conn, ok := b.connections[name]; ok {
-		return conn, nil
-	}
-
-	// create connection
-	config, err := b.connectionConfig(ctx, s, name)
+	// create and cache connection
+	conn, err := config.newConnection(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	p := &splunk.APIParams{
-		BaseURL: config.URL,
-		Config: oauth2.Config{
-			ClientID:     config.Username,
-			ClientSecret: config.Password,
-		},
+	if conn, loaded := b.conn.LoadOrStore(config.ID, conn); loaded {
+		// somebody else won the race
+		return conn.(*splunk.API), nil
 	}
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // XXXX
-	}
-	// client is the underlying transport for API calls, including Login (for obtaining session token)
-	client := &http.Client{
-		Transport: tr,
-		Timeout:   1 * time.Minute,
-	}
-	ctx = context.WithValue(context.Background(), oauth2.HTTPClient, client)
-
-	b.connections[name] = p.NewAPI(ctx)
-	return b.connections[name], nil
+	return conn, nil
 }
 
-// ClearConnection closes the connection and
-// removes it from the b.connections map.
-func (b *backend) ClearConnection(name string) error {
-	b.Lock()
-	defer b.Unlock()
-	return b.clearConnectionUnlocked(name)
-}
-
-func (b *backend) clearConnectionUnlocked(name string) error {
-	_, ok := b.connections[name]
-	if ok {
-		delete(b.connections, name)
-	}
-	return nil
-}
-
-func getValue(data *framework.FieldData, op logical.Operation, key string) (interface{}, bool) {
-	if raw, ok := data.GetOk(key); ok {
-		return raw, true
-	}
-	if op == logical.CreateOperation {
-		return data.Get(key), true
-	}
-	return nil, false
-}
-
-func decodeValue(data *framework.FieldData, op logical.Operation, key string, v interface{}) error {
-	raw, ok := getValue(data, op, key)
-	if ok {
-		rraw := reflect.ValueOf(raw)
-		rv := reflect.ValueOf(v)
-		rv.Elem().Set(rraw)
-	}
+// clearConnection closes the connection and removes it from the cache.
+func (b *backend) clearConnection(id string) error {
+	b.conn.Delete(id)
 	return nil
 }
 
 const backendHelp = `
-The Splunk backend XXX.
+The Splunk backend rotates admin credentials and dynamically generates new
+users with limited life-time.
+
 After mounting this backend, credentials for a Splunk admin role must
-be configured and roles must be written using
-the "role/" endpoints before any logins can be generated.
+be configured and connections and roles must be written using
+the "config/" and "roles/" endpoints before any logins can be generated.
 `

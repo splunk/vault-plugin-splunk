@@ -27,7 +27,7 @@ func (b *backend) secretCredsRenewHandler(ctx context.Context, req *logical.Requ
 		return nil, fmt.Errorf("missing role name")
 	}
 	roleName := roleNameRaw.(string)
-	role, err := b.Role(ctx, req.Storage, roleName)
+	role, err := roleConfigLoad(ctx, req.Storage, roleName)
 	if err != nil {
 		return nil, err
 	}
@@ -40,15 +40,28 @@ func (b *backend) secretCredsRenewHandler(ctx context.Context, req *logical.Requ
 	if err != nil {
 		return nil, err
 	}
-	if ttl > 0 {
-		expireTime := time.Now().Add(ttl)
-		_ = expireTime
-		// XXXX call out to Splunk if it *could* extend leases via API...
-	}
 
 	resp := &logical.Response{Secret: req.Secret}
 	resp.Secret.TTL = role.DefaultTTL
 	resp.Secret.MaxTTL = role.MaxTTL
+	if ttl > 0 {
+		expireTime := time.Now().Add(ttl)
+		_ = expireTime
+		config, err := connectionConfigLoad(ctx, req.Storage, role.Connection)
+		if err != nil {
+			return nil, err
+		}
+		conn, err := b.ensureConnection(ctx, role.Connection, config)
+		if err != nil {
+			return nil, err
+		}
+		if conn == nil {
+			return nil, fmt.Errorf("error getting Splunk connection")
+		}
+		if _, _, err = conn.Introspection.ServerInfo(); err != nil {
+			resp.AddWarning(fmt.Sprintf("failed to renew lease: %s", err))
+		}
+	}
 	return resp, nil
 }
 
@@ -61,22 +74,22 @@ func (b *backend) secretCredsRevokeHandler(ctx context.Context, req *logical.Req
 	if !ok {
 		return nil, fmt.Errorf("unable to convert connection name")
 	}
-	c, err := b.GetConnection(ctx, req.Storage, connName)
-	if err != nil {
-		return nil, err
-	}
-	if c == nil {
-		return nil, fmt.Errorf("error getting Splunk connection")
-	}
-
 	usernameRaw, ok := req.Secret.InternalData["username"]
 	if !ok {
 		return nil, fmt.Errorf("username is missing on the lease")
 	}
 	username := usernameRaw.(string)
 
-	// XXXX connection lock?
-	_, _, err = c.AccessControl.Authentication.Users.Delete(username)
+	config, err := connectionConfigLoad(ctx, req.Storage, connName)
+	if err != nil {
+		return nil, err
+	}
+	conn, err := b.ensureConnection(ctx, connName, config)
+	if err != nil {
+		return nil, err
+	}
+
+	_, _, err = conn.AccessControl.Authentication.Users.Delete(username)
 	if err != nil {
 		return nil, err
 	}

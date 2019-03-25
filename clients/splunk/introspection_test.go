@@ -6,12 +6,12 @@ import (
 	"gotest.tools/assert"
 )
 
-func testIntrospectionService() *IntrospectionService {
-	return testAPIParams().NewAPI(testContext()).Introspection
+func testIntrospectionService(t *testing.T) *IntrospectionService {
+	return TestGlobalSplunkClient(t).Introspection
 }
 
 func TestIntrospectionService_ServerInfo(t *testing.T) {
-	s := testIntrospectionService()
+	s := testIntrospectionService(t)
 
 	info, resp, err := s.ServerInfo()
 	assert.NilError(t, err)

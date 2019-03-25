@@ -2,16 +2,19 @@ package splunk
 
 import "fmt"
 
+// The APIError type encapsulates API errors and status responses.
 type APIError struct {
 	Messages []APIErrorMessage `json:"messages"`
 }
 
+// The APIErrorMessage type encapsulates a single API error or status message.
 type APIErrorMessage struct {
 	Type string `json:"type"`
 	Text string `json:"text"`
 	Code string `json:"code"`
 }
 
+// Error is an implementation of the error interface
 func (e APIError) Error() string {
 	if len(e.Messages) > 0 {
 		err := e.Messages[0] // XXX concat Messages
