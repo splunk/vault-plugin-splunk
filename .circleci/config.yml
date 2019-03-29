@@ -1,0 +1,58 @@
+version: 2
+
+defaultenv: &defaultenv
+  environment:
+    SPLUNK_ADDR: https://localhost:8089
+    SPLUNK_PASSWORD: test1234
+    SPLUNK_START_ARGS: --accept-license
+
+jobs:
+  build:
+    working_directory: /go/src/github.com/splunk/vault-plugin-splunk
+    docker:
+      - image: circleci/golang:1.12
+        <<: *defaultenv
+      - image: splunk/splunk:latest
+        user: root
+        <<: *defaultenv
+    environment:
+      - GOCACHE: /tmp/go/cache
+    steps:
+      - checkout
+
+      - restore_cache:
+          name: Restoring Cache for vendor
+          key: gopkg-{{ arch }}-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+          paths:
+              - /go/src/github.com/splunk/vault-plugin-splunk/vendor
+      - restore_cache:
+          name: Restoring Cache for build
+          keys:
+              - build-cache-{{ arch }}-{{ .Branch }}-{{ .Environment.CIRCLE_PREVIOUS_BUILD_NUM }}
+          paths:
+              - /tmp/go/cache
+
+      - run:
+          name: Build
+          command: make build DEPFLAGS=-v
+      - run:
+          name: Wait for Splunk Container
+          command: curl -4sSk --retry 40 --retry-connrefused --retry-delay 3 -o /dev/null ${SPLUNK_ADDR}
+      - run:
+          name: Test
+          command: make test TESTREPORT=test-results/go/results.xml
+      - store_test_results:
+          path: test-results/
+      - store_artifacts:
+          path: test-results/
+
+      - save_cache:
+          name: Saving Cache for vendor
+          key: gopkg-{{ arch }}-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+          paths:
+              - /go/src/github.com/splunk/vault-plugin-splunk/vendor
+      - save_cache:
+          name: Saving Cache for build
+          key: build-cache-{{ arch }}-{{ .Branch }}-{{ .Environment.CIRCLE_BUILD_NUM }}
+          paths:
+              - /tmp/go/cache

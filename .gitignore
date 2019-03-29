@@ -17,3 +17,5 @@
 /vendor/
 
 /vault.hcl
+/test-results.xml
+/test-results/

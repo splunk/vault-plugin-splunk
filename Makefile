@@ -2,6 +2,8 @@ VERSION         := 0.1.0
 SHORT_COMMIT    := $(shell git rev-parse --short HEAD 2>/dev/null || echo dev)
 GO_VERSION      := $(shell go version | awk '{ print $$3}' | sed 's/^go//')
 
+TESTREPORT := test-results.xml
+
 # XXX BUG(mweber) "go env GOBIN" is empty?
 GOBIN := $(shell go env GOPATH)/bin
 
@@ -16,7 +18,7 @@ all: dep build lint test
 
 .PHONY: dep
 dep: prereq
-	dep ensure
+	dep ensure $(DEPFLAGS)
 
 .PHONY: build
 build: dep vault.hcl
@@ -37,7 +39,8 @@ dev: build
 .PHONY: test
 test: build
 	@test -n "$$SPLUNK_ADDR" || { echo 'warning: SPLUNK_ADDR not set, creating new Splunk instances.  This will be slow.'; }
-	go test -v ./...
+	mkdir -p $(dir $(TESTREPORT))
+	gotestsum --junitfile $(TESTREPORT) -- -cover -v ./...
 
 .PHONY: lint
 lint: dep
@@ -48,8 +51,9 @@ lint: dep
 prereq:
 	go get github.com/golang/dep/cmd/dep
 	go get golang.org/x/lint/golint
+	go get gotest.tools/gotestsum
 
 .PHONY: clean
 clean:
 	# XXX clean
-	rm -rf vault.hcl vendor/
+	rm -rf vault.hcl $(TESTREPORT) vendor/
