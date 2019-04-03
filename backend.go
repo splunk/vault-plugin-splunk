@@ -12,8 +12,7 @@ import (
 
 type backend struct {
 	*framework.Backend
-	rotateLock sync.Mutex
-	conn       *sync.Map
+	conn *sync.Map
 }
 
 // Factory is the factory function to create a Splunk backend.
