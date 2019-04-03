@@ -30,8 +30,8 @@ func TestUserService_Create(t *testing.T) {
 	params := testUserParams("")
 
 	user, _, err := userSvc.Create(params)
-	defer userSvc.Delete(user.Name)
 	assert.NilError(t, err)
+	defer userSvc.Delete(user.Name)
 	assert.Equal(t, user.Name, params.Name)
 	assert.Equal(t, user.Content.Email, params.Email)
 }
@@ -52,8 +52,8 @@ func TestUserService_Update_Email(t *testing.T) {
 	params := testUserParams("")
 
 	user, _, err := userSvc.Create(params)
-	defer userSvc.Delete(user.Name)
 	assert.NilError(t, err)
+	defer userSvc.Delete(user.Name)
 	assert.Equal(t, user.Name, params.Name)
 
 	user, _, err = userSvc.Update(user.Name, &UpdateUserOptions{
@@ -68,6 +68,7 @@ func TestUserService_Update_Password(t *testing.T) {
 	params := testUserParams("")
 
 	user, _, err := userSvc.Create(params)
+	assert.NilError(t, err)
 	defer userSvc.Delete(user.Name)
 	assert.NilError(t, err)
 	assert.Equal(t, user.Name, params.Name)
@@ -93,6 +94,7 @@ func TestUserService_Update_OwnPassword(t *testing.T) {
 
 	params := testUserParams("")
 	user, _, err := userSvc.Create(params)
+	assert.NilError(t, err)
 	defer userSvc.Delete(user.Name)
 
 	_, _, err = userSvc.Update(user.Name, &UpdateUserOptions{

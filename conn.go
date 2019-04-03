@@ -77,6 +77,7 @@ func (config *splunkConfig) store(ctx context.Context, s logical.Storage, name s
 		defer func() {
 			if err != nil {
 				// config was not stored => cancel cleanup
+				// #nosec G104
 				framework.DeleteWAL(ctx, s, walID)
 			}
 		}()
