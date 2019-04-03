@@ -41,6 +41,9 @@ jobs:
       - run:
           name: Test
           command: make test TESTREPORT=test-results/go/results.xml
+      - run:
+          name: Code Quality
+          command: make lint
       - store_test_results:
           path: test-results/
       - store_artifacts:

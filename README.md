@@ -4,9 +4,13 @@ vault-plugin-splunk
 A Hashicorp Vault[1] plugin that aims to securely manage Splunk admin
 accounts, including secrets rotation for compliance purposes.
 
-[![CircleCI](https://circleci.com/gh/splunk/vault-plugin-splunk.svg?style=svg)](https://circleci.com/gh/splunk/vault-plugin-splunk)
-
 [1] https://www.vaultproject.io/
+
+## Project status
+
+[![Build Status](https://circleci.com/gh/splunk/vault-plugin-splunk.svg?style=shield)](https://circleci.com/gh/splunk/vault-plugin-splunk)
+[![GoReport](https://goreportcard.com/badge/github.com/splunk/vault-plugin-splunk)](https://goreportcard.com/report/github.com/splunk/vault-plugin-splunk)
+
 
 # Building from Source
 

@@ -14,7 +14,7 @@ LD_FLAGS +=  -X "$(LD_FLAGS_PKG).commit=$(SHORT_COMMIT)"
 LD_FLAGS +=  -X "$(LD_FLAGS_PKG).goVersion=$(GO_VERSION)"
 
 .PHONY: all
-all: dep build lint test
+all: build lint test
 
 .PHONY: dep
 dep: prereq
@@ -46,11 +46,15 @@ test: build
 lint: dep
 	go list ./... | grep -v vendor | xargs go vet
 	go list ./... | grep -v vendor | xargs golint
+	ineffassign .
+	gosec -quiet -vendor ./...
 
 .PHONY: prereq
 prereq:
 	go get github.com/golang/dep/cmd/dep
 	go get golang.org/x/lint/golint
+	go get github.com/gordonklaus/ineffassign
+	go get github.com/securego/gosec/cmd/gosec/...
 	go get gotest.tools/gotestsum
 
 .PHONY: clean

@@ -92,7 +92,8 @@ func TestGlobalSplunkClient(t *testing.T) *API {
 // See also: APIParams.NewAPI
 func TestDefaultContext() context.Context {
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // XXX
+		// #nosec G402
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	// client is the underlying transport for API calls, including Login (for obtaining session token)
 	client := &http.Client{
@@ -202,6 +203,7 @@ func NewTestSplunkServiceWithTempAdmin() (cleanup func(), conn *API, err error) 
 	clConn := conn
 	clCleanup := cleanup
 	cleanup = func() {
+		// #nosec G104
 		clConn.AccessControl.Authentication.Users.Delete(testUser)
 		clCleanup()
 	}
