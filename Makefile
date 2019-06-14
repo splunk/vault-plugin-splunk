@@ -1,4 +1,4 @@
-VERSION         := 0.1.0
+VERSION         := $(shell git describe --tags --always 2>/dev/null)
 SHORT_COMMIT    := $(shell git rev-parse --short HEAD 2>/dev/null || echo dev)
 GO_VERSION      := $(shell go version | awk '{ print $$3}' | sed 's/^go//')
 
