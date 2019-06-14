@@ -27,7 +27,7 @@ func main() {
 
 	switch {
 	case *printVersion:
-		fmt.Printf("%s %s (golang %s)\n", os.Args[0], version, goVersion)
+		fmt.Printf("%s (golang %s)\n", version, goVersion)
 		os.Exit(0)
 	}
 
