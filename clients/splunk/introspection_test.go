@@ -17,7 +17,7 @@ func TestIntrospectionService_ServerInfo(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Equal(t, len(info), 1)
 	assert.Assert(t, info[0].ID != "")
-	assert.Assert(t, len(resp.Links) > 0)
+	assert.Assert(t, len(info[0].Links) > 0)
 	assert.Equal(t, resp.Paging.Offset, 0)
 	_, build := resp.Generator["build"]
 	assert.Assert(t, build)
