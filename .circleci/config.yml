@@ -44,12 +44,18 @@ jobs:
       - run:
           name: Code Quality
           command: make lint
+      - run:
+          name: Release
+          command: |
+            export GOVERSION=$(go version | awk '{sub("^go","",$3);print $3;}')
+            scripts/goreleaser --rm-dist --skip-publish ${CIRCLE_TAG:-"--snapshot"}
+            rm -rf $(find ./dist/* -type d) || true
       - store_test_results:
           path: test-results/
       - store_artifacts:
           path: test-results/
       - store_artifacts:
-          path: /go/bin/vault-plugin-splunk
+          path: dist/
 
       - save_cache:
           name: Saving Cache for vendor
@@ -63,10 +69,8 @@ jobs:
               - /tmp/go/cache
 
       - persist_to_workspace:
-            root: /go/bin
-            # Must be relative path from root
-            paths:
-                - vault-plugin-splunk
+            root: dist/
+            paths: .
 
   publish-github-release:
     docker:
@@ -78,9 +82,8 @@ jobs:
           name: "Publish Release on GitHub"
           command: |
             go get github.com/tcnksm/ghr
-            VERSION=$(artifacts/vault-plugin-splunk -version | awk '{print $1}')
-            zip -jr vault-plugin-splunk artifacts/
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -recreate ${VERSION} ./vault-plugin-splunk.zip
+            VERSION=$(echo artifacts/vault-plugin-splunk_*_*.zip | awk -F_ '{print $2;exit;}')
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -recreate ${VERSION} ./artifacts/
 
 workflows:
   version: 2
