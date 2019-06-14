@@ -48,8 +48,9 @@ jobs:
           name: Release
           command: |
             export GOVERSION=$(go version | awk '{sub("^go","",$3);print $3;}')
-            scripts/goreleaser --rm-dist --skip-publish ${CIRCLE_TAG:-"--snapshot"}
-            rm -rf $(find ./dist/* -type d) || true
+            [ -n "$CIRCLE_TAG" ] || tagargs="--snapshot"
+            scripts/goreleaser --rm-dist --skip-publish $tagargs
+            rm -rf $(find ./dist/* -type d) dist/config.yaml || true
       - store_test_results:
           path: test-results/
       - store_artifacts:
@@ -82,8 +83,8 @@ jobs:
           name: "Publish Release on GitHub"
           command: |
             go get github.com/tcnksm/ghr
-            VERSION=$(echo artifacts/vault-plugin-splunk_*_*.zip | awk -F_ '{print $2;exit;}')
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -recreate ${VERSION} ./artifacts/
+            TAG=v$(echo artifacts/vault-plugin-splunk_*_*.zip | awk -F_ '{print $2;exit;}')
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -recreate ${TAG} ./artifacts/
 
 workflows:
   version: 2
