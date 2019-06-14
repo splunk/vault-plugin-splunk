@@ -122,6 +122,8 @@ goconvey -excludedDirs vendor
 * support "DIY" Splunk cluster without CM
 * better HTTP error codes
 * support for license rotation?
+* add (default) secrets mount description (currently "n/a")
+* DisplayName for config parameters (where is it shown?)
 
 ### Tests
 * TTLs roundtrip
