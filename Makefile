@@ -1,17 +1,7 @@
-VERSION         := $(shell git describe --tags --always 2>/dev/null)
-SHORT_COMMIT    := $(shell git rev-parse --short HEAD 2>/dev/null || echo dev)
-GO_VERSION      := $(shell go version | awk '{ print $$3}' | sed 's/^go//')
-
 TESTREPORT := test-results.xml
 
 # XXX BUG(mweber) "go env GOBIN" is empty?
 GOBIN := $(shell go env GOPATH)/bin
-
-LD_FLAGS_PKG ?= main
-LD_FLAGS :=
-LD_FLAGS +=  -X "$(LD_FLAGS_PKG).version=$(VERSION)"
-LD_FLAGS +=  -X "$(LD_FLAGS_PKG).commit=$(SHORT_COMMIT)"
-LD_FLAGS +=  -X "$(LD_FLAGS_PKG).goVersion=$(GO_VERSION)"
 
 .PHONY: all
 all: build lint test
@@ -22,7 +12,7 @@ dep: prereq
 
 .PHONY: build
 build: dep vault.hcl
-	go install -ldflags '$(LD_FLAGS)' ./...
+	go install ./...
 
 vault.hcl: vault.hcl.in
 	sed -e 's;@@GOBIN@@;$(GOBIN);g' < $< > $@
@@ -60,4 +50,4 @@ prereq:
 .PHONY: clean
 clean:
 	# XXX clean
-	rm -rf vault.hcl $(TESTREPORT) vendor/
+	rm -rf vault.hcl $(TESTREPORT) vendor/ dist/

@@ -11,9 +11,12 @@ import (
 	splunk "github.com/splunk/vault-plugin-splunk"
 )
 
+// nolint: gochecknoglobals
 var (
-	version   string
-	goVersion string
+	version   = "dev"
+	commit    = ""
+	date      = ""
+	goVersion = ""
 )
 
 func main() {
@@ -25,9 +28,17 @@ func main() {
 	// #nosec G104
 	flags.Parse(os.Args[1:])
 
+	printField := func(field, value string) {
+		if field != "" && value != "" {
+			fmt.Printf("%s: %s\n", field, value)
+		}
+	}
 	switch {
 	case *printVersion:
-		fmt.Printf("%s (golang %s)\n", version, goVersion)
+		printField("version", version)
+		printField("commit", commit)
+		printField("date", date)
+		printField("go", goVersion)
 		os.Exit(0)
 	}
 
