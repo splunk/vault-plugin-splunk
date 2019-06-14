@@ -79,7 +79,7 @@ jobs:
           command: |
             go get github.com/tcnksm/ghr
             VERSION=$(artifacts/vault-plugin-splunk -version | awk '{print $1}')
-            zip -j vault-plugin-splunk artifacts/
+            zip -jr vault-plugin-splunk artifacts/
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -recreate ${VERSION} ./vault-plugin-splunk.zip
 
 workflows:
