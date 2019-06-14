@@ -47,7 +47,7 @@ lint: dep
 	go list ./... | grep -v vendor | xargs go vet
 	go list ./... | grep -v vendor | xargs golint
 	ineffassign .
-	gosec -quiet -vendor ./...
+	gosec -quiet ./...
 
 .PHONY: prereq
 prereq:
