@@ -48,6 +48,8 @@ jobs:
           path: test-results/
       - store_artifacts:
           path: test-results/
+      - store_artifacts:
+          path: /go/bin/vault-plugin-splunk
 
       - save_cache:
           name: Saving Cache for vendor
@@ -59,3 +61,38 @@ jobs:
           key: build-cache-{{ arch }}-{{ .Branch }}-{{ .Environment.CIRCLE_BUILD_NUM }}
           paths:
               - /tmp/go/cache
+
+      - persist_to_workspace:
+            root: /go/bin
+            # Must be relative path from root
+            paths:
+                - vault-plugin-splunk
+
+  publish-github-release:
+    docker:
+      - image: cibuilds/github:0.10
+    steps:
+      - attach_workspace:
+          at: ./artifacts
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            VERSION=$(artifacts/vault-plugin-splunk -version)
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
+
+workflows:
+  version: 2
+  tagged-build:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+      - publish-github-release:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/

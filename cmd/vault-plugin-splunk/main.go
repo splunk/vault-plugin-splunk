@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/hashicorp/go-hclog"
@@ -10,12 +11,25 @@ import (
 	splunk "github.com/splunk/vault-plugin-splunk"
 )
 
+var (
+	version   string
+	goVersion string
+)
+
 func main() {
 	apiClientMeta := &pluginutil.APIClientMeta{}
 	flags := apiClientMeta.FlagSet()
+	printVersion := flags.Bool("version", false, "Prints version")
+
 	// all plugins ignore Parse errors
 	// #nosec G104
 	flags.Parse(os.Args[1:])
+
+	switch {
+	case *printVersion:
+		fmt.Printf("%s %s (golang %s)\n", os.Args[0], version, goVersion)
+		os.Exit(0)
+	}
 
 	tlsConfig := apiClientMeta.GetTLSConfig()
 	tlsProviderFunc := pluginutil.VaultPluginTLSProvider(tlsConfig)
