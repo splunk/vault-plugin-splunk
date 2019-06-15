@@ -30,7 +30,7 @@ func newBackend() logical.Backend {
 		Help: strings.TrimSpace(backendHelp),
 		PathsSpecial: &logical.Paths{
 			SealWrapStorage: []string{
-				"config/*",
+				"config/",
 			},
 		},
 		Paths: []*framework.Path{
