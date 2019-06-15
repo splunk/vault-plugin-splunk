@@ -19,22 +19,6 @@ jobs:
       - GOCACHE: /tmp/go/cache
     steps:
       - checkout
-
-      - restore_cache:
-          name: Restoring Cache for vendor
-          key: gopkg-{{ arch }}-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
-          paths:
-              - /go/src/github.com/splunk/vault-plugin-splunk/vendor
-      - restore_cache:
-          name: Restoring Cache for build
-          keys:
-              - build-cache-{{ arch }}-{{ .Branch }}-{{ .Environment.CIRCLE_PREVIOUS_BUILD_NUM }}
-          paths:
-              - /tmp/go/cache
-
-      - run:
-          name: Build
-          command: make build DEPFLAGS=-v
       - run:
           name: Wait for Splunk Container
           command: curl -4sSk --retry 40 --retry-connrefused --retry-delay 3 -o /dev/null ${SPLUNK_ADDR}
@@ -49,8 +33,7 @@ jobs:
           command: |
             export GOVERSION=$(go version | awk '{sub("^go","",$3);print $3;}')
             [ -n "$CIRCLE_TAG" ] || tagargs="--snapshot"
-            scripts/goreleaser --rm-dist --skip-publish $tagargs
-            rm -rf $(find ./dist/* -type d) dist/config.yaml || true
+            scripts/goreleaser --rm-dist $tagargs
       - store_test_results:
           path: test-results/
       - store_artifacts:
@@ -58,47 +41,11 @@ jobs:
       - store_artifacts:
           path: dist/
 
-      - save_cache:
-          name: Saving Cache for vendor
-          key: gopkg-{{ arch }}-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
-          paths:
-              - /go/src/github.com/splunk/vault-plugin-splunk/vendor
-      - save_cache:
-          name: Saving Cache for build
-          key: build-cache-{{ arch }}-{{ .Branch }}-{{ .Environment.CIRCLE_BUILD_NUM }}
-          paths:
-              - /tmp/go/cache
-
-      - persist_to_workspace:
-            root: dist/
-            paths: .
-
-  publish-github-release:
-    docker:
-      - image: circleci/golang:1.12
-    steps:
-      - attach_workspace:
-          at: ./artifacts
-      - run:
-          name: "Publish Release on GitHub"
-          command: |
-            go get github.com/tcnksm/ghr
-            TAG=v$(echo artifacts/vault-plugin-splunk_*_*.zip | awk -F_ '{print $2;exit;}')
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -recreate ${TAG} ./artifacts/
-
 workflows:
   version: 2
   workflow:
     jobs:
       - build:
           filters:
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
-      - publish-github-release:
-          requires:
-            - build
-          filters:
-            branches:
-              ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+$/
