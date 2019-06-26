@@ -31,6 +31,7 @@ func TestUserService_Create(t *testing.T) {
 
 	user, _, err := userSvc.Create(params)
 	assert.NilError(t, err)
+	// nolint:errcheck
 	defer userSvc.Delete(user.Name)
 	assert.Equal(t, user.Name, params.Name)
 	assert.Equal(t, user.Content.Email, params.Email)
@@ -53,6 +54,7 @@ func TestUserService_Update_Email(t *testing.T) {
 
 	user, _, err := userSvc.Create(params)
 	assert.NilError(t, err)
+	// nolint:errcheck
 	defer userSvc.Delete(user.Name)
 	assert.Equal(t, user.Name, params.Name)
 
@@ -69,11 +71,12 @@ func TestUserService_Update_Password(t *testing.T) {
 
 	user, _, err := userSvc.Create(params)
 	assert.NilError(t, err)
+	// nolint:errcheck
 	defer userSvc.Delete(user.Name)
 	assert.NilError(t, err)
 	assert.Equal(t, user.Name, params.Name)
 
-	user, _, err = userSvc.Update(user.Name, &UpdateUserOptions{
+	_, _, err = userSvc.Update(user.Name, &UpdateUserOptions{
 		Password: "changed1234",
 	})
 	assert.NilError(t, err)
@@ -95,6 +98,7 @@ func TestUserService_Update_OwnPassword(t *testing.T) {
 	params := testUserParams("")
 	user, _, err := userSvc.Create(params)
 	assert.NilError(t, err)
+	// nolint:errcheck
 	defer userSvc.Delete(user.Name)
 
 	_, _, err = userSvc.Update(user.Name, &UpdateUserOptions{

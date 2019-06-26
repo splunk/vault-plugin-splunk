@@ -19,6 +19,7 @@ func getValue(data *framework.FieldData, op logical.Operation, key string) (inte
 	return nil, false
 }
 
+// nolint:deadcode,unused
 func decodeValue(data *framework.FieldData, op logical.Operation, key string, v interface{}) error {
 	raw, ok := getValue(data, op, key)
 	if ok {

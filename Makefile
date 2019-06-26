@@ -1,3 +1,4 @@
+GOLANGCI_LINT_ARGS := --enable=gosec --enable=dupl
 TESTREPORT := test-results.xml
 
 # XXX BUG(mweber) "go env GOBIN" is empty?
@@ -34,17 +35,12 @@ test: build
 
 .PHONY: lint
 lint: dep
-	go list ./... | grep -v vendor | xargs go vet
-	go list ./... | grep -v vendor | xargs golint
-	ineffassign .
-	gosec -quiet ./...
+	golangci-lint run $(GOLANGCI_LINT_ARGS)
 
 .PHONY: prereq
 prereq:
 	go get github.com/golang/dep/cmd/dep
-	go get golang.org/x/lint/golint
-	go get github.com/gordonklaus/ineffassign
-	go get github.com/securego/gosec/cmd/gosec/...
+	go get github.com/golangci/golangci-lint/cmd/golangci-lint
 	go get gotest.tools/gotestsum
 
 .PHONY: clean
