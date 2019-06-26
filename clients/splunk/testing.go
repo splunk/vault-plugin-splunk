@@ -203,6 +203,7 @@ func NewTestSplunkServiceWithTempAdmin() (cleanup func(), conn *API, err error) 
 	clConn := conn
 	clCleanup := cleanup
 	cleanup = func() {
+		// nolint:errcheck
 		// #nosec G104
 		clConn.AccessControl.Authentication.Users.Delete(testUser)
 		clCleanup()

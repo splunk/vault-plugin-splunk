@@ -26,6 +26,7 @@ func main() {
 
 	// all plugins ignore Parse errors
 	// #nosec G104
+	// nolint:errcheck
 	flags.Parse(os.Args[1:])
 
 	printField := func(field, value string) {
