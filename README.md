@@ -15,7 +15,7 @@ accounts, including secrets rotation for compliance purposes.
 # Building from Source
 
 ```shell
-git clone git@github.com:splunk/splunk ${GOPATH}/src/github.com/splunk/vault-plugin-splunk
+git clone git@github.com:splunk/vault-plugin-splunk ${GOPATH}/src/github.com/splunk/vault-plugin-splunk
 cd ${GOPATH}/src/github.com/splunk/vault-plugin-splunk
 make
 ```
