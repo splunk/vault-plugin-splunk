@@ -26,7 +26,7 @@ dev: build
 test: build
 	@test -n "$$SPLUNK_ADDR" || { echo 'warning: SPLUNK_ADDR not set, creating new Splunk instances.  This will be slow.'; }
 	mkdir -p $(dir $(TESTREPORT))
-	go clean -testcache
+	go clean -testcache || true
 	gotestsum --junitfile $(TESTREPORT) --format standard-verbose -- -cover -v ./...
 
 .PHONY: lint
