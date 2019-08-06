@@ -23,13 +23,13 @@ func TestPropertiesService_GetKey(t *testing.T) {
 	assert.Equal(t, response.StatusCode, 404)
 
 
-	_, response, err = propertiesSvc.GetKey("server", "general", "pass4SymmKey")
+	_, response, _ = propertiesSvc.GetKey("server", "general", "pass4SymmKey")
 	assert.Equal(t, response.StatusCode, 200)
 
 	// Update value for pass4SymmKey and check if the new value is reflected
-	_, response, err = propertiesSvc.UpdateKey("server", "general", "pass4SymmKey", "bar")
+	_, response, _ = propertiesSvc.UpdateKey("server", "general", "pass4SymmKey", "bar")
 	assert.Equal(t, response.StatusCode, 200)
-	currentValue, response, err := propertiesSvc.GetKey("server", "general", "pass4SymmKey")
+	currentValue, response, _ := propertiesSvc.GetKey("server", "general", "pass4SymmKey")
 	assert.Equal(t, response.StatusCode, 200)
 	assert.Equal(t, *currentValue, "bar")
 }
