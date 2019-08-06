@@ -8,7 +8,7 @@ defaultenv: &defaultenv
 
 jobs:
   build:
-    working_directory: /go/src/github.com/splunk/vault-plugin-splunk
+    working_directory: /go/workdir/src/github.com/splunk/vault-plugin-splunk
     docker:
       - image: circleci/golang:1.12
         <<: *defaultenv
