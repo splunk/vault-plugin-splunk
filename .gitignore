@@ -19,3 +19,5 @@
 /vault.hcl
 /test-results.xml
 /test-results/
+_vendor-*
+*.idea
