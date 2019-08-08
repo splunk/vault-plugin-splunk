@@ -66,6 +66,17 @@ make dev
 vault secrets enable -path=splunk -plugin-name=vault-plugin-splunk plugin || true
 vault write splunk/config/local url="${SPLUNK_ADDR}" insecure_tls=true username=admin password="${SPLUNK_PASSWORD}" allowed_roles='*'
 vault write splunk/roles/local-admin roles=admin email='test@example.com' connection=local default_ttl=30s max_ttl=5m
+vault read splunk/roles/local-admin
+Key            Value
+---            -----
+connection     local
+default_app    n/a
+default_ttl    30s
+email          test@example.com
+max_ttl        5m
+roles          [admin]
+tz             n/a
+user_prefix    vault
 ```
 
 ## Plugin Usage
@@ -82,9 +93,9 @@ Create temporary admin account:
     password           439e831b-e395-9999-2cd7-856381db3394
     roles              [admin]
     url                https://localhost:8089
-    username           vault_local-admin_okta-mweber_70c6c140-238d-e12b-3289-8e38f8c4d9f5_1553712516020311000
+    username           vault_70c6c140-238d-e12b-3289-8e38f8c4d9f5
 
-This creates a new user account `vault_local-admin_okta-mweber_70c6...`
+This creates a new user account `vault_70c6c140-238d-e12b-3289-8e38f8c4d9f5`
 with a new random password.  The account was configured to have the
 admin role.  It will automatically be queued for deletion by vault
 after the configured lease ends, in 5 minutes.  We can use `vault

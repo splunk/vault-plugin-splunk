@@ -9,6 +9,7 @@ import (
 )
 
 const rolesPrefix = "roles/"
+const defaultUserPrefix = "vault"
 
 func (b *backend) pathRoles() *framework.Path {
 	return &framework.Path{
@@ -46,6 +47,11 @@ func (b *backend) pathRoles() *framework.Path {
 			"tz": &framework.FieldSchema{
 				Type:        framework.TypeString,
 				Description: "User time zone.",
+			},
+			"user_prefix": &framework.FieldSchema{
+				Type:        framework.TypeString,
+				Description: "Prefix for creating new users",
+				Default:     defaultUserPrefix,
 			},
 		},
 		Callbacks: map[logical.Operation]framework.OperationFunc{
@@ -123,6 +129,12 @@ func (b *backend) rolesWriteHandler(ctx context.Context, req *logical.Request, d
 	}
 	if tzRaw, ok := getValue(data, req.Operation, "tz"); ok {
 		role.TZ = tzRaw.(string)
+	}
+	if userPrefixRaw, ok := getValue(data, req.Operation, "user_prefix"); ok {
+		role.UserPrefix = userPrefixRaw.(string)
+	}
+	if role.UserPrefix == "" {
+		return logical.ErrorResponse("user_prefix can't be set to empty string"), nil
 	}
 
 	if err := role.store(ctx, req.Storage, name); err != nil {

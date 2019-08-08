@@ -3,8 +3,6 @@ package splunk
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/vault/helper/strutil"
@@ -62,7 +60,11 @@ func (b *backend) credsReadHandler(ctx context.Context, req *logical.Request, d 
 	if err != nil {
 		return nil, err
 	}
-	username := fmt.Sprintf("vault_%s_%s_%s_%d", name, req.DisplayName, userUUID, time.Now().UnixNano())
+	userPrefix := role.UserPrefix
+	if role.UserPrefix == defaultUserPrefix {
+		userPrefix = fmt.Sprintf("%s_%s", role.UserPrefix, req.DisplayName)
+	}
+	username := fmt.Sprintf("%s_%s", userPrefix, userUUID)
 	passwd, err := uuid.GenerateUUID()
 	if err != nil {
 		return nil, errwrap.Wrapf("error generating new password {{err}}", err)
