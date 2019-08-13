@@ -9,6 +9,7 @@ all: build lint test
 
 .PHONY: build
 build: vault.hcl
+	go install ./...
 
 vault.hcl: vault.hcl.in
 	sed -e 's;@@GOBIN@@;$(GOBIN);g' < $< > $@

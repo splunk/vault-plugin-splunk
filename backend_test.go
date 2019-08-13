@@ -23,6 +23,7 @@ func TestBackend_basic(t *testing.T) {
 	roleConfig := roleConfig{
 		Connection: "testconn",
 		Roles:      []string{"admin"},
+		UserPrefix: defaultUserPrefix,
 	}
 
 	logicaltest.Test(t, logicaltest.TestCase{
@@ -85,20 +86,32 @@ func TestBackend_RoleCRUD(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	roleConfig := roleConfig{
+	testRoleConfig := roleConfig{
 		Connection: "testconn",
 		Roles:      []string{"admin"},
+		UserPrefix: "my-custom-prefix",
 	}
 
 	logicaltest.Test(t, logicaltest.TestCase{
 		LogicalBackend: b,
 		Steps: []logicaltest.TestStep{
 			testAccStepConfig(t),
-			testAccStepRole(t, "test", roleConfig),
+			testAccStepRole(t, "test", testRoleConfig),
 			testAccStepRoleMissingRoleName(t),
 			testAccStepRoleMissingRoles(t, "MISSING"),
-			testAccStepRoleRead(t, "test", roleConfig),
+			testAccStepRoleRead(t, "test", testRoleConfig),
 			testAccStepRoleDelete(t, "test"),
+		},
+	})
+	emptyUserPrefixConfig := roleConfig{
+		Connection: "testconn",
+		Roles:      []string{"admin"},
+		UserPrefix: "",
+	}
+	logicaltest.Test(t, logicaltest.TestCase{
+		LogicalBackend: b,
+		Steps: []logicaltest.TestStep{
+			testEmptyUserPrefix(t, "test", emptyUserPrefixConfig),
 		},
 	})
 }
@@ -183,6 +196,22 @@ func testAccStepRoleMissingRoleName(t *testing.T) logicaltest.TestStep {
 				return fmt.Errorf("response is nil")
 			}
 			assert.Error(t, resp.Error(), "cannot write to a path ending in '/'")
+			return nil
+		},
+	}
+}
+
+func testEmptyUserPrefix(t *testing.T, role string, config roleConfig) logicaltest.TestStep {
+	return logicaltest.TestStep{
+		Operation: logical.CreateOperation,
+		Path:      rolesPrefix + role,
+		Data:      config.toResponseData(),
+		ErrorOk:   true,
+		Check: func(resp *logical.Response) error {
+			if resp == nil {
+				return fmt.Errorf("response is nil")
+			}
+			assert.Error(t, resp.Error(), "user_prefix can't be set to empty string")
 			return nil
 		},
 	}

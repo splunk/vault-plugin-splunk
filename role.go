@@ -20,6 +20,7 @@ type roleConfig struct {
 	DefaultApp string   `json:"default_app,omitempty" structs:"default_app"`
 	Email      string   `json:"email,omitempty" structs:"email"`
 	TZ         string   `json:"tz,omitempty" structs:"tz"`
+	UserPrefix string   `json:"user_prefix,omitempty" structs:"user_prefix"`
 }
 
 // Role returns nil if role named `name` does not exist in `storage`, otherwise
