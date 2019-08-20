@@ -31,6 +31,7 @@ test: build
 	gotestsum --junitfile $(TESTREPORT) --format standard-verbose -- -cover -v ./...
 
 .PHONY: lint
+lint:
 	golangci-lint run $(GOLANGCI_LINT_ARGS)
 
 .PHONY: clean
