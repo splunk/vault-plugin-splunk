@@ -31,8 +31,12 @@ test: build
 	gotestsum --junitfile $(TESTREPORT) --format standard-verbose -- -cover -v ./...
 
 .PHONY: lint
-lint:
-	golangci-lint run $(GOLANGCI_LINT_ARGS)
+lint: dep
+	$(GOBIN)/golangci-lint run $(GOLANGCI_LINT_ARGS)
+
+.PHONY: dep
+dep:
+	./scripts/golangci-lint.sh -b $(GOBIN) v1.17.1
 
 .PHONY: clean
 clean:
