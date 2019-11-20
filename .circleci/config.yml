@@ -20,14 +20,14 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Code Quality
+          command: make lint
+      - run:
           name: Wait for Splunk Container
           command: curl -4sSk --retry 40 --retry-connrefused --retry-delay 3 -o /dev/null ${SPLUNK_ADDR}
       - run:
           name: Test
           command: make test TESTREPORT=test-results/go/results.xml
-      - run:
-          name: Code Quality
-          command: make lint
       - run:
           name: Release
           command: |
