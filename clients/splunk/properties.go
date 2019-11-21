@@ -29,10 +29,10 @@ type Entry struct {
 // stringResponseDecoder decodes http response string
 // Properties API operates on particular key in the configuration file.
 // CRUD for properties API returns JSON/XML encoded response for error cases and returns a string response for success
-type stringResponseDecoder struct{
+type stringResponseDecoder struct {
 }
 
-func getPropertiesUri(file string, stanza string, key string) (string) {
+func getPropertiesUri(file string, stanza string, key string) string {
 	return fmt.Sprintf("properties/%s/%s/%s", url.PathEscape(file), url.PathEscape(stanza), url.PathEscape(key))
 }
 

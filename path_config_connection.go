@@ -33,6 +33,11 @@ func (b *backend) pathConfigConnection() *framework.Path {
 				Type:        framework.TypeString,
 				Description: "Splunk server URL.",
 			},
+			"is_standalone": &framework.FieldSchema{
+				Type:        framework.TypeBool,
+				Description: "Whether this is a standalone or multi-node deployment",
+				Default:     false,
+			},
 			"allowed_roles": &framework.FieldSchema{
 				Type: framework.TypeCommaStringSlice,
 				Description: trimIndent(`

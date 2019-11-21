@@ -12,7 +12,7 @@ func TestPropertiesService_GetKey(t *testing.T) {
 	_, response, err := propertiesSvc.GetKey("foo", "bar", "key")
 	assert.ErrorContains(t, err, "splunk: foo does not exist")
 	assert.Equal(t, response.StatusCode, 404)
-	_, response, err = propertiesSvc.GetKey("b/a/z","b-ar", "k-ey")
+	_, response, err = propertiesSvc.GetKey("b/a/z", "b-ar", "k-ey")
 	assert.ErrorContains(t, err, "ERROR splunk: Directory traversal risk in /nobody/system/b/a/z at segment \"b/a/z\"")
 	assert.Equal(t, response.StatusCode, 403)
 	_, response, err = propertiesSvc.GetKey("foo-bar", "b/a/z", "k-ey")
@@ -21,7 +21,6 @@ func TestPropertiesService_GetKey(t *testing.T) {
 	_, response, err = propertiesSvc.UpdateKey("foo", "bar", "pass4SymmKey", "bar")
 	assert.ErrorContains(t, err, "splunk: bar does not exist")
 	assert.Equal(t, response.StatusCode, 404)
-
 
 	_, response, _ = propertiesSvc.GetKey("server", "general", "pass4SymmKey")
 	assert.Equal(t, response.StatusCode, 200)
