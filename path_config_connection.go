@@ -170,6 +170,10 @@ func (b *backend) connectionWriteHandler(ctx context.Context, req *logical.Reque
 	if config.URL == "" {
 		return logical.ErrorResponse("empty URL"), nil
 	}
+	if isStandalone, ok := getValue(data, req.Operation, "is_standalone"); ok {
+		config.IsStandalone = isStandalone.(bool)
+	}
+
 	if verifyRaw, ok := getValue(data, req.Operation, "verify"); ok {
 		config.Verify = verifyRaw.(bool)
 	}

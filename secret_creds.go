@@ -51,7 +51,7 @@ func (b *backend) secretCredsRenewHandler(ctx context.Context, req *logical.Requ
 		if err != nil {
 			return nil, err
 		}
-		conn, err := b.ensureConnection(ctx, role.Connection, config)
+		conn, err := b.ensureConnection(ctx, config)
 		if err != nil {
 			return nil, err
 		}
@@ -84,7 +84,7 @@ func (b *backend) secretCredsRevokeHandler(ctx context.Context, req *logical.Req
 	if err != nil {
 		return nil, err
 	}
-	conn, err := b.ensureConnection(ctx, connName, config)
+	conn, err := b.ensureConnection(ctx, config)
 	if err != nil {
 		return nil, err
 	}

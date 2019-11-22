@@ -41,6 +41,7 @@ func newBackend() logical.Backend {
 			b.pathRolesList(),
 			b.pathRoles(),
 			b.pathCredsCreate(),
+			b.pathCredsCreateMulti(),
 		},
 		Secrets: []*framework.Secret{
 			b.pathSecretCreds(),
@@ -53,7 +54,7 @@ func newBackend() logical.Backend {
 	return &b
 }
 
-func (b *backend) ensureConnection(ctx context.Context, name string, config *splunkConfig) (*splunk.API, error) {
+func (b *backend) ensureConnection(ctx context.Context, config *splunkConfig) (*splunk.API, error) {
 	if conn, ok := b.conn.Load(config.ID); ok {
 		return conn.(*splunk.API), nil
 	}

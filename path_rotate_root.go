@@ -34,7 +34,7 @@ func (b *backend) rotateRootUpdateHandler(ctx context.Context, req *logical.Requ
 	if err != nil {
 		return nil, err
 	}
-	conn, err := b.ensureConnection(ctx, name, oldConfig)
+	conn, err := b.ensureConnection(ctx, oldConfig)
 	if err != nil {
 		return nil, err
 	}
