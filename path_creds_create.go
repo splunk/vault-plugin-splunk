@@ -2,6 +2,7 @@ package splunk
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/go-uuid"
@@ -62,7 +63,14 @@ func (b *backend) credsReadHandler(ctx context.Context, req *logical.Request, d 
 	}
 	userPrefix := role.UserPrefix
 	if role.UserPrefix == defaultUserPrefix {
-		userPrefix = fmt.Sprintf("%s_%s", role.UserPrefix, req.DisplayName)
+		// Hash display name
+		h := sha256.New()
+		_, err := h.Write([]byte(req.DisplayName))
+		if err != nil {
+			return nil, err
+		}
+		bs := h.Sum(nil)
+		userPrefix = fmt.Sprintf("%s_%x", role.UserPrefix, bs)
 	}
 	username := fmt.Sprintf("%s_%s", userPrefix, userUUID)
 	passwd, err := uuid.GenerateUUID()
