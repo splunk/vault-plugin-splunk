@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
+	"github.com/splunk/vault-plugin-splunk/clients/splunk"
 )
 
 const secretCredsType = "creds"
@@ -35,6 +36,12 @@ func (b *backend) secretCredsRenewHandler(ctx context.Context, req *logical.Requ
 		return nil, fmt.Errorf("error during renew: could not find role with name %q", roleName)
 	}
 
+	nodeFQDN := ""
+	nodeFQDNRaw, ok := req.Secret.InternalData["node_fqdn"]
+	if ok {
+		nodeFQDN = nodeFQDNRaw.(string)
+	}
+
 	// Make sure we increase the VALID UNTIL endpoint for this user.
 	ttl, _, err := framework.CalculateTTL(b.System(), req.Secret.Increment, role.DefaultTTL, 0, role.MaxTTL, 0, req.Secret.IssueTime)
 	if err != nil {
@@ -51,7 +58,7 @@ func (b *backend) secretCredsRenewHandler(ctx context.Context, req *logical.Requ
 		if err != nil {
 			return nil, err
 		}
-		conn, err := b.ensureConnection(ctx, role.Connection, config)
+		conn, err := b.ensureNodeConnection(ctx, config, nodeFQDN)
 		if err != nil {
 			return nil, err
 		}
@@ -74,6 +81,11 @@ func (b *backend) secretCredsRevokeHandler(ctx context.Context, req *logical.Req
 	if !ok {
 		return nil, fmt.Errorf("unable to convert connection name")
 	}
+	nodeFQDN := ""
+	nodeFQDNRaw, ok := req.Secret.InternalData["node_fqdn"]
+	if ok {
+		nodeFQDN = nodeFQDNRaw.(string)
+	}
 	usernameRaw, ok := req.Secret.InternalData["username"]
 	if !ok {
 		return nil, fmt.Errorf("username is missing on the lease")
@@ -84,7 +96,7 @@ func (b *backend) secretCredsRevokeHandler(ctx context.Context, req *logical.Req
 	if err != nil {
 		return nil, err
 	}
-	conn, err := b.ensureConnection(ctx, connName, config)
+	conn, err := b.ensureNodeConnection(ctx, config, nodeFQDN)
 	if err != nil {
 		return nil, err
 	}
@@ -94,4 +106,16 @@ func (b *backend) secretCredsRevokeHandler(ctx context.Context, req *logical.Req
 		return nil, err
 	}
 	return nil, nil
+}
+
+func (b *backend) ensureNodeConnection(ctx context.Context, config *splunkConfig, nodeFQDN string) (*splunk.API, error) {
+	b.Logger().Debug(fmt.Sprintf("connection for node_fqdn: [%s]", nodeFQDN))
+	if nodeFQDN == "" {
+		return b.ensureConnection(ctx, config)
+	}
+
+	// we connect to a node, not the cluster master
+	nodeConfig := *config
+	nodeConfig.URL = "https://" + nodeFQDN + ":8089"
+	return nodeConfig.newConnection(ctx) // XXX cache
 }

@@ -20,6 +20,7 @@ type API struct {
 	Introspection *IntrospectionService
 	AccessControl *AccessControlService
 	Properties    *PropertiesService
+	Deployment    *DeploymentService
 	// XXX ...
 }
 
@@ -39,6 +40,7 @@ func (params *APIParams) NewAPI(ctx context.Context) *API {
 		Introspection: newIntrospectionService(client.New()),
 		AccessControl: newAccessControlService(client.New()),
 		Properties:    newPropertiesService(client.New()),
+		Deployment:    newDeploymentService(client.New()),
 	}
 }
 

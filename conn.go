@@ -30,6 +30,7 @@ type splunkConfig struct {
 	Username       string        `json:"username" structs:"username"`
 	Password       string        `json:"password" structs:"password"`
 	URL            string        `json:"url" structs:"url"`
+	IsStandalone   bool          `json:"is_standalone" structs:"is_standalone"`
 	AllowedRoles   []string      `json:"allowed_roles" structs:"allowed_roles"`
 	Verify         bool          `json:"verify" structs:"verify"`
 	InsecureTLS    bool          `json:"insecure_tls" structs:"insecure_tls"`

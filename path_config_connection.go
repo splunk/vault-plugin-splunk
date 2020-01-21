@@ -33,6 +33,11 @@ func (b *backend) pathConfigConnection() *framework.Path {
 				Type:        framework.TypeString,
 				Description: "Splunk server URL.",
 			},
+			"is_standalone": &framework.FieldSchema{
+				Type:        framework.TypeBool,
+				Description: `Whether this is a standalone or multi-node deployment.  Default: false`,
+				Default:     false,
+			},
 			"allowed_roles": &framework.FieldSchema{
 				Type: framework.TypeCommaStringSlice,
 				Description: trimIndent(`
@@ -59,7 +64,7 @@ func (b *backend) pathConfigConnection() *framework.Path {
 				Default: "tls12",
 				Description: trimIndent(`
 				Minimum TLS version to use. Accepted values are "tls10", "tls11" or
-				"tls12". Defaults to "tls12".`),
+				"tls12".  Default: "tls12".`),
 			},
 			"pem_bundle": &framework.FieldSchema{
 				Type: framework.TypeString,
@@ -82,7 +87,7 @@ func (b *backend) pathConfigConnection() *framework.Path {
 			"connect_timeout": &framework.FieldSchema{
 				Type:        framework.TypeDurationSecond,
 				Default:     "30s",
-				Description: `The connection timeout to use. Default: 30s.`,
+				Description: `The connection timeout to use.  Default: 30s.`,
 			},
 		},
 
@@ -165,6 +170,10 @@ func (b *backend) connectionWriteHandler(ctx context.Context, req *logical.Reque
 	if config.URL == "" {
 		return logical.ErrorResponse("empty URL"), nil
 	}
+	if isStandalone, ok := getValue(data, req.Operation, "is_standalone"); ok {
+		config.IsStandalone = isStandalone.(bool)
+	}
+
 	if verifyRaw, ok := getValue(data, req.Operation, "verify"); ok {
 		config.Verify = verifyRaw.(bool)
 	}
