@@ -178,7 +178,7 @@ func (b *backend) credsReadHandlerMulti(ctx context.Context, req *logical.Reques
 	nodes, _, err := conn.Deployment.GetSearchPeers()
 	if err != nil {
 		b.Logger().Error("Error while reading SearchPeers from cluster master", err)
-		return nil, fmt.Errorf("unable to read searchpeers from cluster master")
+		return nil, errwrap.Wrapf("unable to read searchpeers from cluster master: {{err}}", err)
 	}
 	_, err = findNode(nodeFQDN, nodes)
 	if err != nil {
@@ -204,7 +204,7 @@ func (b *backend) credsReadHandlerMulti(ctx context.Context, req *logical.Reques
 	username := fmt.Sprintf("%s_%s", userPrefix, userUUID)
 	passwd, err := uuid.GenerateUUID()
 	if err != nil {
-		return nil, errwrap.Wrapf("error generating new password {{err}}", err)
+		return nil, errwrap.Wrapf("error generating new password: {{err}}", err)
 	}
 	conn.Params().BaseURL = nodeFQDN
 	opts := splunk.CreateUserOptions{
