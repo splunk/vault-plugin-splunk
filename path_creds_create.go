@@ -13,8 +13,9 @@ import (
 
 const (
 	SEARCHHEAD = "search_head"
-	INDEXER = "indexer"
+	INDEXER    = "indexer"
 )
+
 func (b *backend) pathCredsCreate() *framework.Path {
 	return &framework.Path{
 		Pattern: "creds/" + framework.GenericNameRegex("name"),
@@ -161,7 +162,7 @@ func (b *backend) credsReadHandlerMulti(ctx context.Context, req *logical.Reques
 	}
 	// Check if isStandalone is set
 	if config.IsStandalone {
-		return nil, fmt.Errorf("expected is_standalone to be set for connection: %q", role.Connection)
+		return nil, fmt.Errorf("expected is_standalone to be unset for connection: %q", role.Connection)
 	}
 
 	// If role name isn't in allowed roles, send back a permission denied.
@@ -186,8 +187,8 @@ func (b *backend) credsReadHandlerMulti(ctx context.Context, req *logical.Reques
 
 	// Re-create connection for node
 	config.URL = "https://" + nodeFQDN + ":8089"
-	config.ID = ""
-	conn, err = b.ensureConnection(ctx, config)
+	// XXX config.ID = ""
+	conn, err = config.newConnection(ctx) // XXX cache
 	if err != nil {
 		return nil, err
 	}
@@ -230,6 +231,7 @@ func (b *backend) credsReadHandlerMulti(ctx context.Context, req *logical.Reques
 		"username":   username,
 		"role":       name,
 		"connection": role.Connection,
+		"node_fqdn":  nodeFQDN,
 	})
 	resp.Secret.TTL = role.DefaultTTL
 	resp.Secret.MaxTTL = role.MaxTTL

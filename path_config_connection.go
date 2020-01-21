@@ -35,7 +35,7 @@ func (b *backend) pathConfigConnection() *framework.Path {
 			},
 			"is_standalone": &framework.FieldSchema{
 				Type:        framework.TypeBool,
-				Description: "Whether this is a standalone or multi-node deployment",
+				Description: `Whether this is a standalone or multi-node deployment.  Default: false`,
 				Default:     false,
 			},
 			"allowed_roles": &framework.FieldSchema{
@@ -64,7 +64,7 @@ func (b *backend) pathConfigConnection() *framework.Path {
 				Default: "tls12",
 				Description: trimIndent(`
 				Minimum TLS version to use. Accepted values are "tls10", "tls11" or
-				"tls12". Defaults to "tls12".`),
+				"tls12".  Default: "tls12".`),
 			},
 			"pem_bundle": &framework.FieldSchema{
 				Type: framework.TypeString,
@@ -87,7 +87,7 @@ func (b *backend) pathConfigConnection() *framework.Path {
 			"connect_timeout": &framework.FieldSchema{
 				Type:        framework.TypeDurationSecond,
 				Default:     "30s",
-				Description: `The connection timeout to use. Default: 30s.`,
+				Description: `The connection timeout to use.  Default: 30s.`,
 			},
 		},
 
