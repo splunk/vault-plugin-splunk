@@ -12,11 +12,6 @@ import (
 	"github.com/splunk/vault-plugin-splunk/clients/splunk"
 )
 
-const (
-	SEARCHHEAD = "search_head"
-	INDEXER    = "indexer"
-)
-
 func (b *backend) pathCredsCreate() *framework.Path {
 	return &framework.Path{
 		Pattern: "creds/" + framework.GenericNameRegex("name"),
@@ -129,20 +124,23 @@ func (b *backend) credsReadHandlerStandalone(ctx context.Context, req *logical.R
 	return resp, nil
 }
 
-func findNode(nodeFQDN string, hosts []splunk.ServerInfoEntry) (bool, error) {
+func findNode(nodeFQDN string, hosts []splunk.ServerInfoEntry, roleConfig *roleConfig) (bool, error) {
 	for _, host := range hosts {
 		// check if node_fqdn is in either of HostFQDN or Host. User might not always the FQDN on the cli input
 		if host.Content.HostFQDN == nodeFQDN || host.Content.Host == nodeFQDN {
-			// Return true if the requested node is a search head
+			// Return true if the requested node type is allowed
+			if strutil.StrListContains(roleConfig.AllowedNodeTypes, "*") {
+				return true, nil
+			}
 			for _, role := range host.Content.Roles {
-				if role == SEARCHHEAD {
+				if strutil.StrListContainsGlob(roleConfig.AllowedNodeTypes, role) {
 					return true, nil
 				}
 			}
-			return false, fmt.Errorf("host: %s isn't search head; creating ephemeral creds is only supported for search heads", nodeFQDN)
+			return false, fmt.Errorf("host %q does not have an allowed node type", nodeFQDN)
 		}
 	}
-	return false, fmt.Errorf("host: %s not found", nodeFQDN)
+	return false, fmt.Errorf("host %q not found", nodeFQDN)
 }
 
 func (b *backend) credsReadHandlerMulti(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
@@ -181,7 +179,7 @@ func (b *backend) credsReadHandlerMulti(ctx context.Context, req *logical.Reques
 		b.Logger().Error("Error while reading SearchPeers from cluster master", err)
 		return nil, errwrap.Wrapf("unable to read searchpeers from cluster master: {{err}}", err)
 	}
-	_, err = findNode(nodeFQDN, nodes)
+	_, err = findNode(nodeFQDN, nodes, role)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +205,6 @@ func (b *backend) credsReadHandlerMulti(ctx context.Context, req *logical.Reques
 	if err != nil {
 		return nil, errwrap.Wrapf("error generating new password: {{err}}", err)
 	}
-	conn.Params().BaseURL = nodeFQDN
 	opts := splunk.CreateUserOptions{
 		Name:       username,
 		Password:   passwd,
