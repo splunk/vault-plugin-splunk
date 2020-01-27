@@ -87,9 +87,11 @@ func TestBackend_RoleCRUD(t *testing.T) {
 	}
 
 	testRoleConfig := roleConfig{
-		Connection: "testconn",
-		Roles:      []string{"admin"},
-		UserPrefix: "my-custom-prefix",
+		Connection:       "testconn",
+		Roles:            []string{"admin"},
+		AllowedNodeTypes: []string{"*"},
+		PasswordSpec:     DefaultPasswordSpec(),
+		UserPrefix:       "my-custom-prefix",
 	}
 
 	logicaltest.Test(t, logicaltest.TestCase{

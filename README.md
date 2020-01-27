@@ -102,6 +102,21 @@ after the configured lease ends, in 5 minutes.  We can use `vault
 lease [renew|revoke]` to manually alter the length of the lease, up to
 the configured maximum time.
 
+For clustered stacks, we create ephemeral credentials for specific nodes:
+
+    $ vault read splunk/creds/local-admin/idx.example.com
+    Key                Value
+    ---                -----
+    lease_id           splunk/creds/local-admin/idx.example.com/u2N97uUVVDw3YVaETB1yRK74
+    lease_duration     30s
+    lease_renewable    true
+    connection         local
+    password           &R1iX5W%$41QGcf^yN2i9%%#tUNf58h!
+    roles              [admin]
+    url                https://idx.example.com:8089
+    username           vault_29079642-4aa1-1979-f402-b3775f2713a7
+
+
 Rotate the Splunk admin password:
 
     vault write -f splunk/rotate-root/local
