@@ -14,6 +14,7 @@ type roleConfig struct {
 	Connection string        `json:"connection" structs:"connection"`
 	DefaultTTL time.Duration `json:"default_ttl" structs:"default_ttl"`
 	MaxTTL     time.Duration `json:"max_ttl" structs:"max_ttl"`
+	PasswordSpec     *PasswordSpec `json:"password_spec" structs:"password_spec"`
 
 	// Splunk user attributes
 	Roles      []string `json:"roles" structs:"roles"`

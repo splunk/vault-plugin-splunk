@@ -3,8 +3,9 @@ package splunk
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/errwrap"
-	"github.com/hashicorp/go-uuid"
+	uuid "github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/vault/helper/strutil"
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
@@ -84,7 +85,7 @@ func (b *backend) credsReadHandlerStandalone(ctx context.Context, req *logical.R
 	}
 
 	// Generate credentials
-	userUUID, err := uuid.GenerateUUID()
+	userUUID, err := generateUserID(role)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +94,7 @@ func (b *backend) credsReadHandlerStandalone(ctx context.Context, req *logical.R
 		userPrefix = fmt.Sprintf("%s_%s", role.UserPrefix, req.DisplayName)
 	}
 	username := fmt.Sprintf("%s_%s", userPrefix, userUUID)
-	passwd, err := uuid.GenerateUUID()
+	passwd, err := generateUserPassword(role)
 	if err != nil {
 		return nil, errwrap.Wrapf("error generating new password {{err}}", err)
 	}
@@ -193,7 +194,7 @@ func (b *backend) credsReadHandlerMulti(ctx context.Context, req *logical.Reques
 		return nil, err
 	}
 	// Generate credentials
-	userUUID, err := uuid.GenerateUUID()
+	userUUID, err := generateUserID(role)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +203,7 @@ func (b *backend) credsReadHandlerMulti(ctx context.Context, req *logical.Reques
 		userPrefix = fmt.Sprintf("%s_%s", role.UserPrefix, req.DisplayName)
 	}
 	username := fmt.Sprintf("%s_%s", userPrefix, userUUID)
-	passwd, err := uuid.GenerateUUID()
+	passwd, err := generateUserPassword(role)
 	if err != nil {
 		return nil, errwrap.Wrapf("error generating new password: {{err}}", err)
 	}
@@ -249,6 +250,19 @@ func (b *backend) credsReadHandler(ctx context.Context, req *logical.Request, d 
 	}
 	b.Logger().Debug(fmt.Sprintf("node_fqdn not specified for role: [%s]. using standalone mode getting temporary creds", name))
 	return b.credsReadHandlerStandalone(ctx, req, d)
+}
+
+func generateUserID(roleConfig *roleConfig) (string, error) {
+	return uuid.GenerateUUID()
+}
+
+func generateUserPassword(roleConfig *roleConfig) (string, error) {
+	passwd, err := GeneratePassword(roleConfig.PasswordSpec)
+	if err == nil {
+		return passwd, nil
+	}
+	// fallback
+	return uuid.GenerateUUID()
 }
 
 const pathCredsCreateHelpSyn = `

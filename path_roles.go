@@ -114,6 +114,7 @@ func (b *backend) rolesWriteHandler(ctx context.Context, req *logical.Request, d
 	if maxTTLRaw, ok := getValue(data, req.Operation, "max_ttl"); ok {
 		role.MaxTTL = time.Duration(maxTTLRaw.(int)) * time.Second
 	}
+	role.PasswordSpec = DefaultPasswordSpec() // XXX make configurable
 
 	if roles, ok := getValue(data, req.Operation, "roles"); ok {
 		role.Roles = roles.([]string)

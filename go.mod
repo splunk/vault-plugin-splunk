@@ -17,6 +17,7 @@ require (
 	github.com/elazarl/go-bindata-assetfs v1.0.0 // indirect
 	github.com/fatih/structs v1.1.0
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
+	github.com/go-test/deep v1.0.5 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/go-querystring v1.0.0
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
@@ -48,6 +49,7 @@ require (
 	github.com/pierrec/lz4 v2.2.6+incompatible // indirect
 	github.com/prometheus/client_golang v1.1.0 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
+	github.com/sethvargo/go-password v0.1.3
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	golang.org/x/net v0.0.0-20190620200207-3b0461eec859 // indirect
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
