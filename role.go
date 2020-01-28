@@ -11,11 +11,11 @@ import (
 )
 
 type roleConfig struct {
-	Connection       string        `json:"connection" structs:"connection"`
-	DefaultTTL       time.Duration `json:"default_ttl" structs:"default_ttl"`
-	MaxTTL           time.Duration `json:"max_ttl" structs:"max_ttl"`
-	AllowedNodeTypes []string      `json:"allowed_node_types" structs:"allowed_node_types"`
-	PasswordSpec     *PasswordSpec `json:"password_spec" structs:"password_spec"`
+	Connection         string        `json:"connection" structs:"connection"`
+	DefaultTTL         time.Duration `json:"default_ttl" structs:"default_ttl"`
+	MaxTTL             time.Duration `json:"max_ttl" structs:"max_ttl"`
+	AllowedServerRoles []string      `json:"allowed_server_roles" structs:"allowed_server_roles"`
+	PasswordSpec       *PasswordSpec `json:"password_spec" structs:"password_spec"`
 
 	// Splunk user attributes
 	Roles      []string `json:"roles" structs:"roles"`
