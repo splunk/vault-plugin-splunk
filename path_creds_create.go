@@ -129,15 +129,15 @@ func findNode(nodeFQDN string, hosts []splunk.ServerInfoEntry, roleConfig *roleC
 		// check if node_fqdn is in either of HostFQDN or Host. User might not always the FQDN on the cli input
 		if host.Content.HostFQDN == nodeFQDN || host.Content.Host == nodeFQDN {
 			// Return true if the requested node type is allowed
-			if strutil.StrListContains(roleConfig.AllowedNodeTypes, "*") {
+			if strutil.StrListContains(roleConfig.AllowedServerRoles, "*") {
 				return true, nil
 			}
 			for _, role := range host.Content.Roles {
-				if strutil.StrListContainsGlob(roleConfig.AllowedNodeTypes, role) {
+				if strutil.StrListContainsGlob(roleConfig.AllowedServerRoles, role) {
 					return true, nil
 				}
 			}
-			return false, fmt.Errorf("host %q does not have an allowed node type", nodeFQDN)
+			return false, fmt.Errorf("host %q does not have any of the allowed server roles: %q", nodeFQDN, roleConfig.AllowedServerRoles)
 		}
 	}
 	return false, fmt.Errorf("host %q not found", nodeFQDN)

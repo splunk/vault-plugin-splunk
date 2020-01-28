@@ -35,7 +35,7 @@ func (b *backend) pathRoles() *framework.Path {
 				Type:        framework.TypeCommaStringSlice,
 				Description: "Comma-separated string or list of Splunk roles.",
 			},
-			"allowed_node_types": &framework.FieldSchema{
+			"allowed_server_roles": &framework.FieldSchema{
 				Type: framework.TypeCommaStringSlice,
 				Description: trimIndent(`
 				Comma-separated string or array of node type (glob) patterns that are allowed
@@ -122,8 +122,8 @@ func (b *backend) rolesWriteHandler(ctx context.Context, req *logical.Request, d
 	if maxTTLRaw, ok := getValue(data, req.Operation, "max_ttl"); ok {
 		role.MaxTTL = time.Duration(maxTTLRaw.(int)) * time.Second
 	}
-	if allowed_node_types, ok := getValue(data, req.Operation, "allowed_node_types"); ok {
-		role.AllowedNodeTypes = allowed_node_types.([]string)
+	if allowedServerRoles, ok := getValue(data, req.Operation, "allowed_server_roles"); ok {
+		role.AllowedServerRoles = allowedServerRoles.([]string)
 	}
 	role.PasswordSpec = DefaultPasswordSpec() // XXX make configurable
 
