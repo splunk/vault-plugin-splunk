@@ -151,9 +151,12 @@ func (config *splunkConfig) newConnection(ctx context.Context) (*splunk.API, err
 	if err != nil {
 		return nil, err
 	}
+
 	tr := &http.Transport{
 		TLSClientConfig: tlsConfig,
+		Proxy:           http.ProxyFromEnvironment,
 	}
+
 	// client is the underlying transport for API calls, including Login (for obtaining session token)
 	client := &http.Client{
 		Transport: tr,
