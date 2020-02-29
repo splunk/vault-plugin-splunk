@@ -11,9 +11,21 @@ func newDeploymentService(client *Client) *DeploymentService {
 	}
 }
 
-// GetSearchPeers returns information about all search peers
-func (d *DeploymentService) GetSearchPeers() ([]ServerInfoEntry, *Response, error) {
-	info := make([]ServerInfoEntry, 0)
-	resp, err := Receive(d.client.New().Get("search/distributed/peers"), &info)
+var (
+	ServerInfoEntryFilterDefault *PaginationFilter
+
+	ServerInfoEntryFilterMinimal *PaginationFilter = &PaginationFilter{
+		Filter: []string{"host", "host_fqdn", "server_roles"},
+	}
+)
+
+// SearchPeers returns information about all search peers
+func (d *DeploymentService) SearchPeers(filter *PaginationFilter) ([]ServerInfoEntry, *Response, error) {
+	var info []ServerInfoEntry
+	sling := d.client.New().Get("search/distributed/peers")
+	if filter != ServerInfoEntryFilterDefault {
+		sling = sling.QueryStruct(filter)
+	}
+	resp, err := Receive(sling, &info)
 	return info, resp, err
 }
