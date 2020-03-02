@@ -109,7 +109,7 @@ func (b *backend) secretCredsRevokeHandler(ctx context.Context, req *logical.Req
 }
 
 func (b *backend) ensureNodeConnection(ctx context.Context, config *splunkConfig, nodeFQDN string) (*splunk.API, error) {
-	b.Logger().Debug(fmt.Sprintf("connection for node_fqdn: [%s]", nodeFQDN))
+	b.Logger().Debug("node connection", "nodeFQDN", nodeFQDN)
 	if nodeFQDN == "" {
 		return b.ensureConnection(ctx, config)
 	}

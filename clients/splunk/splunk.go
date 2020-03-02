@@ -7,11 +7,26 @@ import (
 	"time"
 )
 
-type outputMode struct {
-	Mode string `url:"output_mode"`
+// API https://docs.splunk.com/Documentation/Splunk/8.0.2/RESTREF/RESTprolog#Request_and_response_details
+type PaginationFilter struct {
+	Count     int      `url:"count,omitempty"` // NOTE: we omit zero value, since this is already set in outputMode
+	Filter    []string `url:"f,omitempty"`
+	Offset    int      `url:"offset,omitempty"`
+	Search    string   `url:"search,omitempty"`
+	SortDir   string   `url:"sort_dir,omitempty"`
+	SortKey   string   `url:"sort_key,omitempty"`
+	SortMode  string   `url:"sort_mode,omitempty"`
+	Summarize bool     `url:"summarize,omitempty"`
 }
 
-var jsonOutputMode = outputMode{"json"}
+type outputMode struct {
+	Mode string `url:"output_mode,omitempty"`
+	// by default, we do not want any pagination,
+	// override with PaginationFilter
+	Count int `url:"count"`
+}
+
+var jsonOutputMode = outputMode{"json", 0}
 
 // API https://docs.splunk.com/Documentation/Splunk/latest/RESTREF/RESTprolog
 type API struct {

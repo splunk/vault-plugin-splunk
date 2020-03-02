@@ -3,6 +3,7 @@ package splunk
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/errwrap"
 	uuid "github.com/hashicorp/go-uuid"
@@ -127,7 +128,7 @@ func (b *backend) credsReadHandlerStandalone(ctx context.Context, req *logical.R
 func findNode(nodeFQDN string, hosts []splunk.ServerInfoEntry, roleConfig *roleConfig) (bool, error) {
 	for _, host := range hosts {
 		// check if node_fqdn is in either of HostFQDN or Host. User might not always the FQDN on the cli input
-		if host.Content.HostFQDN == nodeFQDN || host.Content.Host == nodeFQDN {
+		if strings.EqualFold(host.Content.HostFQDN, nodeFQDN) || strings.EqualFold(host.Content.Host, nodeFQDN) {
 			// Return true if the requested node type is allowed
 			if strutil.StrListContains(roleConfig.AllowedServerRoles, "*") {
 				return true, nil
@@ -174,11 +175,12 @@ func (b *backend) credsReadHandlerMulti(ctx context.Context, req *logical.Reques
 		return nil, err
 	}
 
-	nodes, _, err := conn.Deployment.GetSearchPeers()
+	nodes, _, err := conn.Deployment.SearchPeers(splunk.ServerInfoEntryFilterMinimal)
 	if err != nil {
-		b.Logger().Error("Error while reading SearchPeers from cluster master", err)
+		b.Logger().Error("Error while reading SearchPeers from cluster master", "err", err)
 		return nil, errwrap.Wrapf("unable to read searchpeers from cluster master: {{err}}", err)
 	}
+
 	_, err = findNode(nodeFQDN, nodes, role)
 	if err != nil {
 		return nil, err
@@ -242,10 +244,10 @@ func (b *backend) credsReadHandler(ctx context.Context, req *logical.Request, d 
 	node_fqdn, present := d.GetOk("node_fqdn")
 	// if node_fqdn is specified then the treat the request for a multi-node deployment
 	if present {
-		b.Logger().Debug(fmt.Sprintf("node_fqdn: [%s] specified for role: [%s]. using clustered mode getting temporary creds", node_fqdn.(string), name))
+		b.Logger().Debug("node_fqdn specified for role. using clustered mode for getting temporary creds", "nodeFQDN", node_fqdn.(string), "role", name)
 		return b.credsReadHandlerMulti(ctx, req, d)
 	}
-	b.Logger().Debug(fmt.Sprintf("node_fqdn not specified for role: [%s]. using standalone mode getting temporary creds", name))
+	b.Logger().Debug("node_fqdn not specified for role. using standalone mode for getting temporary creds", "role", name)
 	return b.credsReadHandlerStandalone(ctx, req, d)
 }
 

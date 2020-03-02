@@ -1,0 +1,529 @@
+[
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idm-i-074b0895939212e99.foo.example.com%3A8089",
+    "name": "idm-i-074b0895939212e99.foo.example.com:8089",
+    "content": {
+      "host": "idm-i-074b0895939212e99.foo.example.com",
+      "host_fqdn": "idm-i-074b0895939212e99",
+      "peerName": "idm-i-074b0895939212e99.foo.example.com",
+      "server_roles": [
+        "cluster_search_head",
+        "search_head",
+        "kv_store"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-00a4c6813929dcccd.foo.example.com%3A8089",
+    "name": "idx-i-00a4c6813929dcccd.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-00a4c6813929dcccd.foo.example.com",
+      "host_fqdn": "idx-i-00a4c6813929dcccd",
+      "peerName": "idx-i-00a4c6813929dcccd.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-01248bc6b6f6dcf29.foo.example.com%3A8089",
+    "name": "idx-i-01248bc6b6f6dcf29.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-01248bc6b6f6dcf29.foo.example.com",
+      "host_fqdn": "idx-i-01248bc6b6f6dcf29",
+      "peerName": "idx-i-01248bc6b6f6dcf29.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-017690c5a08a30279.foo.example.com%3A8089",
+    "name": "idx-i-017690c5a08a30279.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-017690c5a08a30279.foo.example.com",
+      "host_fqdn": "idx-i-017690c5a08a30279",
+      "peerName": "idx-i-017690c5a08a30279.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-01825076fa96ad270.foo.example.com%3A8089",
+    "name": "idx-i-01825076fa96ad270.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-01825076fa96ad270.foo.example.com",
+      "host_fqdn": "idx-i-01825076fa96ad270",
+      "peerName": "idx-i-01825076fa96ad270.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-01fccfb9b81e76f03.foo.example.com%3A8089",
+    "name": "idx-i-01fccfb9b81e76f03.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-01fccfb9b81e76f03.foo.example.com",
+      "host_fqdn": "idx-i-01fccfb9b81e76f03",
+      "peerName": "idx-i-01fccfb9b81e76f03.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-02336e0fe07b5e211.foo.example.com%3A8089",
+    "name": "idx-i-02336e0fe07b5e211.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-02336e0fe07b5e211.foo.example.com",
+      "host_fqdn": "idx-i-02336e0fe07b5e211",
+      "peerName": "idx-i-02336e0fe07b5e211.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-030038baf9fcddf0b.foo.example.com%3A8089",
+    "name": "idx-i-030038baf9fcddf0b.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-030038baf9fcddf0b.foo.example.com",
+      "host_fqdn": "idx-i-030038baf9fcddf0b",
+      "peerName": "idx-i-030038baf9fcddf0b.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-0357077de4a68b84f.foo.example.com%3A8089",
+    "name": "idx-i-0357077de4a68b84f.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-0357077de4a68b84f.foo.example.com",
+      "host_fqdn": "idx-i-0357077de4a68b84f",
+      "peerName": "idx-i-0357077de4a68b84f.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-03be181bf5618364e.foo.example.com%3A8089",
+    "name": "idx-i-03be181bf5618364e.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-03be181bf5618364e.foo.example.com",
+      "host_fqdn": "idx-i-03be181bf5618364e",
+      "peerName": "idx-i-03be181bf5618364e.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-04f45a3b9fa99bd36.foo.example.com%3A8089",
+    "name": "idx-i-04f45a3b9fa99bd36.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-04f45a3b9fa99bd36.foo.example.com",
+      "host_fqdn": "idx-i-04f45a3b9fa99bd36",
+      "peerName": "idx-i-04f45a3b9fa99bd36.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-057b4fe7cf4d83907.foo.example.com%3A8089",
+    "name": "idx-i-057b4fe7cf4d83907.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-057b4fe7cf4d83907.foo.example.com",
+      "host_fqdn": "idx-i-057b4fe7cf4d83907",
+      "peerName": "idx-i-057b4fe7cf4d83907.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-06693856a15906dae.foo.example.com%3A8089",
+    "name": "idx-i-06693856a15906dae.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-06693856a15906dae.foo.example.com",
+      "host_fqdn": "idx-i-06693856a15906dae",
+      "peerName": "idx-i-06693856a15906dae.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-07a9549878f0426c5.foo.example.com%3A8089",
+    "name": "idx-i-07a9549878f0426c5.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-07a9549878f0426c5.foo.example.com",
+      "host_fqdn": "idx-i-07a9549878f0426c5",
+      "peerName": "idx-i-07a9549878f0426c5.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-086d414437292a0af.foo.example.com%3A8089",
+    "name": "idx-i-086d414437292a0af.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-086d414437292a0af.foo.example.com",
+      "host_fqdn": "idx-i-086d414437292a0af",
+      "peerName": "idx-i-086d414437292a0af.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-0882cd969e664ce99.foo.example.com%3A8089",
+    "name": "idx-i-0882cd969e664ce99.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-0882cd969e664ce99.foo.example.com",
+      "host_fqdn": "idx-i-0882cd969e664ce99",
+      "peerName": "idx-i-0882cd969e664ce99.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-08b44057c9fc0c522.foo.example.com%3A8089",
+    "name": "idx-i-08b44057c9fc0c522.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-08b44057c9fc0c522.foo.example.com",
+      "host_fqdn": "idx-i-08b44057c9fc0c522",
+      "peerName": "idx-i-08b44057c9fc0c522.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-08c29ddec22a834db.foo.example.com%3A8089",
+    "name": "idx-i-08c29ddec22a834db.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-08c29ddec22a834db.foo.example.com",
+      "host_fqdn": "idx-i-08c29ddec22a834db",
+      "peerName": "idx-i-08c29ddec22a834db.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-091e002380e20205d.foo.example.com%3A8089",
+    "name": "idx-i-091e002380e20205d.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-091e002380e20205d.foo.example.com",
+      "host_fqdn": "idx-i-091e002380e20205d",
+      "peerName": "idx-i-091e002380e20205d.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-0958db44eea01a796.foo.example.com%3A8089",
+    "name": "idx-i-0958db44eea01a796.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-0958db44eea01a796.foo.example.com",
+      "host_fqdn": "idx-i-0958db44eea01a796",
+      "peerName": "idx-i-0958db44eea01a796.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-09aea64a82ba34b70.foo.example.com%3A8089",
+    "name": "idx-i-09aea64a82ba34b70.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-09aea64a82ba34b70.foo.example.com",
+      "host_fqdn": "idx-i-09aea64a82ba34b70",
+      "peerName": "idx-i-09aea64a82ba34b70.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-09cea942b1459e1dc.foo.example.com%3A8089",
+    "name": "idx-i-09cea942b1459e1dc.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-09cea942b1459e1dc.foo.example.com",
+      "host_fqdn": "idx-i-09cea942b1459e1dc",
+      "peerName": "idx-i-09cea942b1459e1dc.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-0a65be6b5d80da019.foo.example.com%3A8089",
+    "name": "idx-i-0a65be6b5d80da019.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-0a65be6b5d80da019.foo.example.com",
+      "host_fqdn": "idx-i-0a65be6b5d80da019",
+      "peerName": "idx-i-0a65be6b5d80da019.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-0bac5952b7f99e592.foo.example.com%3A8089",
+    "name": "idx-i-0bac5952b7f99e592.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-0bac5952b7f99e592.foo.example.com",
+      "host_fqdn": "idx-i-0bac5952b7f99e592",
+      "peerName": "idx-i-0bac5952b7f99e592.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-0d0aa6c139f795124.foo.example.com%3A8089",
+    "name": "idx-i-0d0aa6c139f795124.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-0d0aa6c139f795124.foo.example.com",
+      "host_fqdn": "idx-i-0d0aa6c139f795124",
+      "peerName": "idx-i-0d0aa6c139f795124.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-0d8a68643fab7af61.foo.example.com%3A8089",
+    "name": "idx-i-0d8a68643fab7af61.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-0d8a68643fab7af61.foo.example.com",
+      "host_fqdn": "idx-i-0d8a68643fab7af61",
+      "peerName": "idx-i-0d8a68643fab7af61.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-0e792bc3f73908a3c.foo.example.com%3A8089",
+    "name": "idx-i-0e792bc3f73908a3c.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-0e792bc3f73908a3c.foo.example.com",
+      "host_fqdn": "idx-i-0e792bc3f73908a3c",
+      "peerName": "idx-i-0e792bc3f73908a3c.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-0ead7cbf544769726.foo.example.com%3A8089",
+    "name": "idx-i-0ead7cbf544769726.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-0ead7cbf544769726.foo.example.com",
+      "host_fqdn": "idx-i-0ead7cbf544769726",
+      "peerName": "idx-i-0ead7cbf544769726.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-0f393f537bcd30a79.foo.example.com%3A8089",
+    "name": "idx-i-0f393f537bcd30a79.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-0f393f537bcd30a79.foo.example.com",
+      "host_fqdn": "idx-i-0f393f537bcd30a79",
+      "peerName": "idx-i-0f393f537bcd30a79.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-0f615781c4db70d0e.foo.example.com%3A8089",
+    "name": "idx-i-0f615781c4db70d0e.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-0f615781c4db70d0e.foo.example.com",
+      "host_fqdn": "idx-i-0f615781c4db70d0e",
+      "peerName": "idx-i-0f615781c4db70d0e.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/idx-i-0f7caa712a143b5fc.foo.example.com%3A8089",
+    "name": "idx-i-0f7caa712a143b5fc.foo.example.com:8089",
+    "content": {
+      "host": "idx-i-0f7caa712a143b5fc.foo.example.com",
+      "host_fqdn": "idx-i-0f7caa712a143b5fc",
+      "peerName": "idx-i-0f7caa712a143b5fc.foo.example.com",
+      "server_roles": [
+        "indexer",
+        "cluster_slave",
+        "search_peer"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/sh-i-0363b83af8c70d04a.foo.example.com%3A8089",
+    "name": "sh-i-0363b83af8c70d04a.foo.example.com:8089",
+    "content": {
+      "host": "sh-i-0363b83af8c70d04a.foo.example.com",
+      "host_fqdn": "sh-i-0363b83af8c70d04a",
+      "peerName": "sh-i-0363b83af8c70d04a.foo.example.com",
+      "server_roles": [
+        "cluster_search_head",
+        "search_head",
+        "kv_store"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/sh-i-038b5e4d4542efdbd.foo.example.com%3A8089",
+    "name": "sh-i-038b5e4d4542efdbd.foo.example.com:8089",
+    "content": {
+      "host": "sh-i-038b5e4d4542efdbd.foo.example.com",
+      "host_fqdn": "sh-i-038b5e4d4542efdbd",
+      "peerName": "sh-i-038b5e4d4542efdbd.foo.example.com",
+      "server_roles": [
+        "cluster_search_head",
+        "deployment_client",
+        "search_head",
+        "kv_store"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/sh-i-0781d2de3c9f81249.foo.example.com%3A8089",
+    "name": "sh-i-0781d2de3c9f81249.foo.example.com:8089",
+    "content": {
+      "host": "sh-i-0781d2de3c9f81249.foo.example.com",
+      "host_fqdn": "sh-i-0781d2de3c9f81249",
+      "peerName": "sh-i-0781d2de3c9f81249.foo.example.com",
+      "server_roles": [
+        "cluster_search_head",
+        "search_head",
+        "kv_store"
+      ],
+      "version": "7.0.0"
+    }
+  },
+  {
+    "id": "https://cm.foo.example.com:8089/services/search/distributed/peers/sh-i-0a12fdd509c2a2954.foo.example.com%3A8089",
+    "name": "sh-i-0a12fdd509c2a2954.foo.example.com:8089",
+    "content": {
+      "host": "sh-i-0a12fdd509c2a2954.foo.example.com",
+      "host_fqdn": "sh-i-0a12fdd509c2a2954",
+      "peerName": "sh-i-0a12fdd509c2a2954.foo.example.com",
+      "server_roles": [
+        "cluster_search_head",
+        "search_head",
+        "search_peer",
+        "kv_store"
+      ],
+      "version": "7.0.0"
+    }
+  }
+]
