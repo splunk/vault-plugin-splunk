@@ -2,14 +2,22 @@ package splunk
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
 )
 
-const rolesPrefix = "roles/"
-const defaultUserPrefix = "vault"
+const (
+	rolesPrefix       = "roles/"
+	defaultUserPrefix = "vault"
+
+	userIDSchemeUUID4_v0_5_0 = ""
+	userIDSchemeUUID4        = "uuid4"
+	userIDSchemeBase58_64    = "base58-64"
+	userIDSchemeBase58_128   = "base58-128"
+)
 
 func (b *backend) pathRoles() *framework.Path {
 	return &framework.Path{
@@ -58,8 +66,14 @@ func (b *backend) pathRoles() *framework.Path {
 			},
 			"user_prefix": &framework.FieldSchema{
 				Type:        framework.TypeString,
-				Description: "Prefix for creating new users",
+				Description: "Prefix for creating new users.",
 				Default:     defaultUserPrefix,
+			},
+			"user_id_scheme": &framework.FieldSchema{
+				Type: framework.TypeLowerCaseString,
+				Description: fmt.Sprintf("ID generation scheme (%s, %s, %s).  Default: %s",
+					userIDSchemeUUID4, userIDSchemeBase58_64, userIDSchemeBase58_128, userIDSchemeBase58_64),
+				Default: userIDSchemeBase58_64,
 			},
 		},
 		Callbacks: map[logical.Operation]framework.OperationFunc{
@@ -147,6 +161,18 @@ func (b *backend) rolesWriteHandler(ctx context.Context, req *logical.Request, d
 	}
 	if role.UserPrefix == "" {
 		return logical.ErrorResponse("user_prefix can't be set to empty string"), nil
+	}
+
+	if userIDSchemeRaw, ok := getValue(data, req.Operation, "user_id_scheme"); ok {
+		role.UserIDScheme = userIDSchemeRaw.(string)
+	}
+	switch role.UserIDScheme {
+	case userIDSchemeUUID4_v0_5_0:
+	case userIDSchemeUUID4:
+	case userIDSchemeBase58_64:
+	case userIDSchemeBase58_128:
+	default:
+		return logical.ErrorResponse("invalid user_id_scheme: %q", role.UserIDScheme), nil
 	}
 
 	if err := role.store(ctx, req.Storage, name); err != nil {
