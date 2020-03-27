@@ -252,7 +252,18 @@ func (b *backend) credsReadHandler(ctx context.Context, req *logical.Request, d 
 }
 
 func generateUserID(roleConfig *roleConfig) (string, error) {
-	return uuid.GenerateUUID()
+	switch roleConfig.UserIDScheme {
+	case userIDSchemeUUID4_v0_5_0:
+		fallthrough
+	case userIDSchemeUUID4:
+		return uuid.GenerateUUID()
+	case userIDSchemeBase58_64:
+		return GenerateShortUUID(8)
+	case userIDSchemeBase58_128:
+		return GenerateShortUUID(16)
+	default:
+		return "", fmt.Errorf("invalid user_id_scheme: %q", roleConfig.UserIDScheme)
+	}
 }
 
 func generateUserPassword(roleConfig *roleConfig) (string, error) {

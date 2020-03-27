@@ -20,20 +20,29 @@ func TestBackend_basic(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	roleConfig := roleConfig{
-		Connection: "testconn",
-		Roles:      []string{"admin"},
-		UserPrefix: defaultUserPrefix,
+	schemes := []string{
+		userIDSchemeUUID4_v0_5_0,
+		userIDSchemeUUID4,
+		userIDSchemeBase58_64,
+		userIDSchemeBase58_128,
 	}
+	for _, scheme := range schemes {
+		roleConfig := roleConfig{
+			Connection:   "testconn",
+			Roles:        []string{"admin"},
+			UserPrefix:   defaultUserPrefix,
+			UserIDScheme: scheme,
+		}
 
-	logicaltest.Test(t, logicaltest.TestCase{
-		LogicalBackend: b,
-		Steps: []logicaltest.TestStep{
-			testAccStepConfig(t),
-			testAccStepRole(t, "test", roleConfig),
-			testAccStepCredsRead(t, "test"),
-		},
-	})
+		logicaltest.Test(t, logicaltest.TestCase{
+			LogicalBackend: b,
+			Steps: []logicaltest.TestStep{
+				testAccStepConfig(t),
+				testAccStepRole(t, "test", roleConfig),
+				testAccStepCredsRead(t, "test"),
+			},
+		})
+	}
 }
 
 func TestBackend_RotateRoot(t *testing.T) {
@@ -92,6 +101,7 @@ func TestBackend_RoleCRUD(t *testing.T) {
 		AllowedServerRoles: []string{"*"},
 		PasswordSpec:       DefaultPasswordSpec(),
 		UserPrefix:         "my-custom-prefix",
+		UserIDScheme:       userIDSchemeUUID4,
 	}
 
 	logicaltest.Test(t, logicaltest.TestCase{
@@ -105,15 +115,21 @@ func TestBackend_RoleCRUD(t *testing.T) {
 			testAccStepRoleDelete(t, "test"),
 		},
 	})
-	emptyUserPrefixConfig := roleConfig{
-		Connection: "testconn",
-		Roles:      []string{"admin"},
-		UserPrefix: "",
-	}
+	emptyUserPrefixConfig := testRoleConfig
+	emptyUserPrefixConfig.UserPrefix = ""
 	logicaltest.Test(t, logicaltest.TestCase{
 		LogicalBackend: b,
 		Steps: []logicaltest.TestStep{
 			testEmptyUserPrefix(t, "test", emptyUserPrefixConfig),
+		},
+	})
+
+	userIDSchemeConfig := testRoleConfig
+	userIDSchemeConfig.UserIDScheme = "-invalid-"
+	logicaltest.Test(t, logicaltest.TestCase{
+		LogicalBackend: b,
+		Steps: []logicaltest.TestStep{
+			testUserIDScheme(t, "test", "-invalid-", userIDSchemeConfig),
 		},
 	})
 }
@@ -219,6 +235,22 @@ func testEmptyUserPrefix(t *testing.T, role string, config roleConfig) logicalte
 	}
 }
 
+func testUserIDScheme(t *testing.T, role, idScheme string, config roleConfig) logicaltest.TestStep {
+	return logicaltest.TestStep{
+		Operation: logical.CreateOperation,
+		Path:      rolesPrefix + role,
+		Data:      config.toResponseData(),
+		ErrorOk:   true,
+		Check: func(resp *logical.Response) error {
+			if resp == nil {
+				return fmt.Errorf("response is nil")
+			}
+			assert.Error(t, resp.Error(), fmt.Sprintf("invalid user_id_scheme: %q", idScheme))
+			return nil
+		},
+	}
+}
+
 func testAccStepCredsRead(t *testing.T, role string) logicaltest.TestStep {
 	return logicaltest.TestStep{
 		Operation: logical.ReadOperation,
@@ -235,8 +267,11 @@ func testAccStepCredsRead(t *testing.T, role string) logicaltest.TestStep {
 			if err := mapstructure.Decode(resp.Data, &d); err != nil {
 				return err
 			}
-			t.Logf("[WARN] Generated credentials: %+v", d)
-			// XXXX check that generated user can login
+			// check that generated user can login
+			conn := splunk.NewTestSplunkClient(d.URL, d.Username, d.Password)
+			_, _, err := conn.Introspection.ServerInfo()
+			assert.NilError(t, err)
+
 			// XXXX check that generated user is deleted if lease expires
 			return nil
 		},

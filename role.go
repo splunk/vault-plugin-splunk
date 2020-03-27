@@ -18,11 +18,12 @@ type roleConfig struct {
 	PasswordSpec       *PasswordSpec `json:"password_spec" structs:"password_spec"`
 
 	// Splunk user attributes
-	Roles      []string `json:"roles" structs:"roles"`
-	DefaultApp string   `json:"default_app,omitempty" structs:"default_app"`
-	Email      string   `json:"email,omitempty" structs:"email"`
-	TZ         string   `json:"tz,omitempty" structs:"tz"`
-	UserPrefix string   `json:"user_prefix,omitempty" structs:"user_prefix"`
+	Roles        []string `json:"roles" structs:"roles"`
+	DefaultApp   string   `json:"default_app,omitempty" structs:"default_app"`
+	Email        string   `json:"email,omitempty" structs:"email"`
+	TZ           string   `json:"tz,omitempty" structs:"tz"`
+	UserPrefix   string   `json:"user_prefix,omitempty" structs:"user_prefix"`
+	UserIDScheme string   `json:"user_id_scheme,omitempty" structs:"user_id_scheme"`
 }
 
 // Role returns nil if role named `name` does not exist in `storage`, otherwise
