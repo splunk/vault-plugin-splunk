@@ -118,6 +118,7 @@ func (b *backend) credsReadHandlerStandalone(ctx context.Context, req *logical.R
 		"username":   username,
 		"role":       name,
 		"connection": role.Connection,
+		"url":        conn.Params().BaseURL, // new in v0.7.0
 	})
 	resp.Secret.TTL = role.DefaultTTL
 	resp.Secret.MaxTTL = role.MaxTTL
@@ -125,23 +126,23 @@ func (b *backend) credsReadHandlerStandalone(ctx context.Context, req *logical.R
 	return resp, nil
 }
 
-func findNode(nodeFQDN string, hosts []splunk.ServerInfoEntry, roleConfig *roleConfig) (bool, error) {
+func findNode(nodeFQDN string, hosts []splunk.ServerInfoEntry, roleConfig *roleConfig) (*splunk.ServerInfoEntry, error) {
 	for _, host := range hosts {
 		// check if node_fqdn is in either of HostFQDN or Host. User might not always the FQDN on the cli input
 		if strings.EqualFold(host.Content.HostFQDN, nodeFQDN) || strings.EqualFold(host.Content.Host, nodeFQDN) {
-			// Return true if the requested node type is allowed
+			// Return host if the requested node type is allowed
 			if strutil.StrListContains(roleConfig.AllowedServerRoles, "*") {
-				return true, nil
+				return &host, nil
 			}
 			for _, role := range host.Content.Roles {
 				if strutil.StrListContainsGlob(roleConfig.AllowedServerRoles, role) {
-					return true, nil
+					return &host, nil
 				}
 			}
-			return false, fmt.Errorf("host %q does not have any of the allowed server roles: %q", nodeFQDN, roleConfig.AllowedServerRoles)
+			return nil, fmt.Errorf("host %q does not have any of the allowed server roles: %q", nodeFQDN, roleConfig.AllowedServerRoles)
 		}
 	}
-	return false, fmt.Errorf("host %q not found", nodeFQDN)
+	return nil, fmt.Errorf("host %q not found", nodeFQDN)
 }
 
 func (b *backend) credsReadHandlerMulti(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
@@ -181,15 +182,17 @@ func (b *backend) credsReadHandlerMulti(ctx context.Context, req *logical.Reques
 		return nil, errwrap.Wrapf("unable to read searchpeers from cluster master: {{err}}", err)
 	}
 
-	_, err = findNode(nodeFQDN, nodes, role)
+	foundNode, err := findNode(nodeFQDN, nodes, role)
 	if err != nil {
 		return nil, err
 	}
+	if foundNode.Content.Host == "" {
+		return nil, fmt.Errorf("host field unexpectedly empty for %q", nodeFQDN)
+	}
+	nodeFQDN = foundNode.Content.Host // the actual FQDN as returned by the cluster master, confusingly
 
 	// Re-create connection for node
-	config.URL = "https://" + nodeFQDN + ":8089"
-	// XXX config.ID = ""
-	conn, err = config.newConnection(ctx) // XXX cache
+	conn, err = b.ensureNodeConnection(ctx, config, nodeFQDN)
 	if err != nil {
 		return nil, err
 	}
@@ -232,6 +235,7 @@ func (b *backend) credsReadHandlerMulti(ctx context.Context, req *logical.Reques
 		"role":       name,
 		"connection": role.Connection,
 		"node_fqdn":  nodeFQDN,
+		"url":        conn.Params().BaseURL, // new in v0.7.0
 	})
 	resp.Secret.TTL = role.DefaultTTL
 	resp.Secret.MaxTTL = role.MaxTTL

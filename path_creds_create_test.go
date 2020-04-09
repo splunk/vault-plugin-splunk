@@ -136,7 +136,7 @@ func Test_findNode(t *testing.T) {
 				t.Errorf("findNode() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
+			if (got != nil) != tt.want {
 				t.Errorf("findNode() = %v, want %v", got, tt.want)
 			}
 		})
