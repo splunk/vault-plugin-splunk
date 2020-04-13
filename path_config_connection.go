@@ -252,7 +252,7 @@ func (b *backend) connectionWriteHandler(ctx context.Context, req *logical.Reque
 
 func (b *backend) pathConnectionsList() *framework.Path {
 	return &framework.Path{
-		Pattern: fmt.Sprintf("config/?$"),
+		Pattern: "config/?$",
 
 		Callbacks: map[logical.Operation]framework.OperationFunc{
 			logical.ListOperation: b.connectionListHandler,
