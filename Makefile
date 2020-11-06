@@ -28,7 +28,7 @@ test: build
 	@test -n "$$SPLUNK_ADDR" || { echo 'warning: SPLUNK_ADDR not set, creating new Splunk instances.  This will be slow.'; }
 	mkdir -p $(dir $(TESTREPORT))
 	go clean -testcache || true
-	gotestsum --junitfile $(TESTREPORT) --format standard-verbose -- -cover -v ./...
+	$(GOBIN)/gotestsum --junitfile $(TESTREPORT) --format standard-verbose -- -cover -v ./...
 
 .PHONY: lint
 lint: dep
@@ -36,6 +36,7 @@ lint: dep
 
 .PHONY: dep
 dep:
+	go get -u gotest.tools/gotestsum
 	./scripts/golangci-lint.sh -b $(GOBIN) v1.20.0
 
 .PHONY: clean
