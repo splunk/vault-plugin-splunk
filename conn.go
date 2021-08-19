@@ -9,13 +9,12 @@ import (
 	"time"
 
 	"github.com/fatih/structs"
-	"github.com/hashicorp/errwrap"
 	uuid "github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/vault/helper/certutil"
-	"github.com/hashicorp/vault/helper/tlsutil"
-	"github.com/hashicorp/vault/helper/useragent"
-	"github.com/hashicorp/vault/logical"
-	"github.com/hashicorp/vault/logical/framework"
+	"github.com/hashicorp/vault/sdk/framework"
+	"github.com/hashicorp/vault/sdk/helper/certutil"
+	"github.com/hashicorp/vault/sdk/helper/tlsutil"
+	"github.com/hashicorp/vault/sdk/helper/useragent"
+	"github.com/hashicorp/vault/sdk/logical"
 	"golang.org/x/oauth2"
 
 	"github.com/splunk/vault-plugin-splunk/clients/splunk"
@@ -72,7 +71,7 @@ func (config *splunkConfig) store(ctx context.Context, s logical.Storage, name s
 		var walID string
 		walID, err = framework.PutWAL(ctx, s, walTypeConn, &walConnection{oldConfigID})
 		if err != nil {
-			return errwrap.Wrapf("unable to create WAL for deleting cached connection: {{err}}", err)
+			return fmt.Errorf("unable to create WAL for deleting cached connection: %w", err)
 		}
 
 		defer func() {
@@ -87,16 +86,16 @@ func (config *splunkConfig) store(ctx context.Context, s logical.Storage, name s
 
 	config.ID, err = uuid.GenerateUUID()
 	if err != nil {
-		return errwrap.Wrapf("error generating new configuration ID: {{err}}", err)
+		return fmt.Errorf("error generating new configuration ID: %w", err)
 	}
 
 	var newEntry *logical.StorageEntry
 	newEntry, err = logical.StorageEntryJSON(fmt.Sprintf("config/%s", name), config)
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("error writing config/%s JSON: {{err}}", name), err)
+		return fmt.Errorf("error writing config/%s JSON: %w", name, err)
 	}
 	if err = s.Put(ctx, newEntry); err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("error saving new config/%s: {{err}}", name), err)
+		return fmt.Errorf("error saving new config/%s: %w", name, err)
 	}
 
 	// if config.Verify {
@@ -113,7 +112,7 @@ func connectionConfigExists(ctx context.Context, s logical.Storage, name string)
 
 	entry, err := s.Get(ctx, fmt.Sprintf("config/%s", name))
 	if err != nil {
-		return false, errwrap.Wrapf("error reading connection configuration: {{err}}", err)
+		return false, fmt.Errorf("error reading connection configuration: %w", err)
 	}
 	return entry != nil, nil
 }
@@ -124,7 +123,7 @@ func connectionConfigLoad(ctx context.Context, s logical.Storage, name string) (
 	}
 	entry, err := s.Get(ctx, fmt.Sprintf("config/%s", name))
 	if err != nil {
-		return nil, errwrap.Wrapf("error reading connection configuration: {{err}}", err)
+		return nil, fmt.Errorf("error reading connection configuration: %w", err)
 	}
 	if entry == nil {
 		return nil, fmt.Errorf("connection configuration not found: %q", name)
@@ -180,15 +179,17 @@ func (config *splunkConfig) tlsConfig() (tlsConfig *tls.Config, err error) {
 		}
 		parsedCertBundle, err := certBundle.ToParsedCertBundle()
 		if err != nil {
-			return nil, errwrap.Wrapf("failed to parse certificate bundle: {{err}}", err)
+			return nil, fmt.Errorf("failed to parse certificate bundle: %w", err)
 		}
 
 		tlsConfig, err = parsedCertBundle.GetTLSConfig(certutil.TLSClient)
 		if err != nil || tlsConfig == nil {
-			return nil, errwrap.Wrapf(fmt.Sprintf("failed to get TLS configuration: tlsConfig: %#v; {{err}}", tlsConfig), err)
+			return nil, fmt.Errorf("failed to get TLS configuration: tlsConfig: %#v; %w", tlsConfig, err)
 		}
 	} else {
-		tlsConfig = &tls.Config{}
+		tlsConfig = &tls.Config{
+			MinVersion: tls.VersionTLS12, // gosec G402
+		}
 	}
 
 	tlsConfig.InsecureSkipVerify = config.InsecureTLS

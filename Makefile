@@ -1,4 +1,4 @@
-GOLANGCI_LINT_ARGS := --enable=gosec --enable=dupl
+GOLANGCI_LINT_ARGS := -v --enable=gosec --enable=dupl --timeout 5m
 TESTREPORT := test-results.xml
 
 # XXX BUG(mweber) "go env GOBIN" is empty?
@@ -36,7 +36,7 @@ lint: dep
 
 .PHONY: dep
 dep:
-	./scripts/golangci-lint.sh -b $(GOBIN) v1.20.0
+	./scripts/golangci-lint.sh -b $(GOBIN) v1.42.0
 
 .PHONY: clean
 clean:

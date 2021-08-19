@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/go-uuid"
 	"github.com/ory/dockertest"
 	"golang.org/x/oauth2"
@@ -137,13 +136,13 @@ func NewTestSplunkService() (cleanup func(), conn *API, err error) {
 	}
 	password, err := uuid.GenerateUUID()
 	if err != nil {
-		err = errwrap.Wrapf("error generating password: {{err}}", err)
+		err = fmt.Errorf("error generating password: %w", err)
 		return
 	}
 
 	pool, err := dockertest.NewPool("")
 	if err != nil {
-		err = errwrap.Wrapf("Failed to connect to docker: {{err}}", err)
+		err = fmt.Errorf("Failed to connect to docker: %w", err)
 		return
 	}
 
@@ -153,7 +152,7 @@ func NewTestSplunkService() (cleanup func(), conn *API, err error) {
 	}
 	resource, err := pool.Run(testDefaultSplunkContainer, testDefaultSplunkVersion, env)
 	if err != nil {
-		err = errwrap.Wrapf("failed to start local container: {{err}}", err)
+		err = fmt.Errorf("failed to start local container: %w", err)
 		return
 	}
 
@@ -173,7 +172,7 @@ func NewTestSplunkService() (cleanup func(), conn *API, err error) {
 		return err
 	})
 	if err != nil {
-		err = errwrap.Wrapf("Could not connect to Splunk container: {{err}}", err)
+		err = fmt.Errorf("Could not connect to Splunk container: %w", err)
 		return
 	}
 	return
@@ -196,7 +195,7 @@ func NewTestSplunkServiceWithTempAdmin() (cleanup func(), conn *API, err error) 
 		Roles:    []string{"admin"},
 	})
 	if err != nil {
-		err = errwrap.Wrapf(fmt.Sprintf("unable to create test user %q: {{err}}", testUser), err)
+		err = fmt.Errorf("unable to create test user %q: %w", testUser, err)
 		return
 	}
 

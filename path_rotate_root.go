@@ -2,11 +2,11 @@ package splunk
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/vault/logical"
-	"github.com/hashicorp/vault/logical/framework"
+	"github.com/hashicorp/vault/sdk/framework"
+	"github.com/hashicorp/vault/sdk/logical"
 	"github.com/splunk/vault-plugin-splunk/clients/splunk"
 )
 
@@ -14,7 +14,7 @@ func (b *backend) pathRotateRoot() *framework.Path {
 	return &framework.Path{
 		Pattern: "rotate-root/" + framework.GenericNameRegex("name"),
 		Fields: map[string]*framework.FieldSchema{
-			"name": &framework.FieldSchema{
+			"name": {
 				Type:        framework.TypeString,
 				Description: "Name of this Splunk connection",
 			},
@@ -42,7 +42,7 @@ func (b *backend) rotateRootUpdateHandler(ctx context.Context, req *logical.Requ
 	config := *oldConfig
 	passwd, err := uuid.GenerateUUID()
 	if err != nil {
-		return nil, errwrap.Wrapf("error generating new password {{err}}", err)
+		return nil, fmt.Errorf("error generating new password %w", err)
 	}
 	config.Password = passwd
 
@@ -53,7 +53,7 @@ func (b *backend) rotateRootUpdateHandler(ctx context.Context, req *logical.Requ
 
 	// XXX write WAL in case we restart between successful update and store
 	if _, _, err := conn.AccessControl.Authentication.Users.Update(config.Username, &opts); err != nil {
-		return nil, errwrap.Wrapf("error updating password: {{err}}", err)
+		return nil, fmt.Errorf("error updating password: %w", err)
 	}
 
 	if err := config.store(ctx, req.Storage, name); err != nil {

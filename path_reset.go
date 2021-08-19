@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/vault/logical"
-	"github.com/hashicorp/vault/logical/framework"
+	"github.com/hashicorp/vault/sdk/framework"
+	"github.com/hashicorp/vault/sdk/logical"
 )
 
 // pathResetConnection configures a path to reset a plugin.
@@ -13,7 +13,7 @@ func (b *backend) pathResetConnection() *framework.Path {
 	return &framework.Path{
 		Pattern: fmt.Sprintf("reset/%s", framework.GenericNameRegex("name")),
 		Fields: map[string]*framework.FieldSchema{
-			"name": &framework.FieldSchema{
+			"name": {
 				Type:        framework.TypeString,
 				Description: "Name of this Splunk connection",
 			},
