@@ -6,8 +6,7 @@ import (
 	"time"
 
 	"github.com/fatih/structs"
-	"github.com/hashicorp/errwrap"
-	"github.com/hashicorp/vault/logical"
+	"github.com/hashicorp/vault/sdk/logical"
 )
 
 type roleConfig struct {
@@ -35,7 +34,7 @@ func roleConfigLoad(ctx context.Context, s logical.Storage, name string) (*roleC
 
 	entry, err := s.Get(ctx, rolesPrefix+name)
 	if err != nil {
-		return nil, errwrap.Wrapf("error retrieving role: {{err}}", err)
+		return nil, fmt.Errorf("error retrieving role: %w", err)
 	}
 	if entry == nil {
 		return nil, nil
@@ -43,7 +42,7 @@ func roleConfigLoad(ctx context.Context, s logical.Storage, name string) (*roleC
 
 	role := roleConfig{}
 	if err := entry.DecodeJSON(&role); err != nil {
-		return nil, errwrap.Wrapf("error decoding role: {{err}}", err)
+		return nil, fmt.Errorf("error decoding role: %w", err)
 	}
 	return &role, nil
 }
@@ -54,7 +53,7 @@ func (role *roleConfig) store(ctx context.Context, s logical.Storage, name strin
 		return err
 	}
 	if err := s.Put(ctx, entry); err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("error writing %q JSON: {{err}}", rolesPrefix+name), err)
+		return fmt.Errorf("error writing %q JSON: %w", rolesPrefix+name, err)
 	}
 	return nil
 }

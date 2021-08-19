@@ -10,7 +10,7 @@ jobs:
   build:
     working_directory: /go/workdir/src/github.com/splunk/vault-plugin-splunk
     docker:
-      - image: circleci/golang:1.13.4
+      - image: circleci/golang:1.16.6
         <<: *defaultenv
       - image: splunk/splunk:latest
         user: root

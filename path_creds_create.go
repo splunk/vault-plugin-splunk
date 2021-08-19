@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/errwrap"
 	uuid "github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/vault/helper/strutil"
-	"github.com/hashicorp/vault/logical"
-	"github.com/hashicorp/vault/logical/framework"
+	"github.com/hashicorp/vault/sdk/framework"
+	"github.com/hashicorp/vault/sdk/helper/strutil"
+	"github.com/hashicorp/vault/sdk/logical"
 	"github.com/splunk/vault-plugin-splunk/clients/splunk"
 )
 
@@ -92,7 +91,7 @@ func (b *backend) credsReadHandlerStandalone(ctx context.Context, req *logical.R
 	username := fmt.Sprintf("%s_%s", userPrefix, userUUID)
 	passwd, err := generateUserPassword(role)
 	if err != nil {
-		return nil, errwrap.Wrapf("error generating new password {{err}}", err)
+		return nil, fmt.Errorf("error generating new password %w", err)
 	}
 	opts := splunk.CreateUserOptions{
 		Name:       username,
@@ -179,7 +178,7 @@ func (b *backend) credsReadHandlerMulti(ctx context.Context, req *logical.Reques
 	nodes, _, err := conn.Deployment.SearchPeers(splunk.ServerInfoEntryFilterMinimal)
 	if err != nil {
 		b.Logger().Error("Error while reading SearchPeers from cluster master", "err", err)
-		return nil, errwrap.Wrapf("unable to read searchpeers from cluster master: {{err}}", err)
+		return nil, fmt.Errorf("unable to read searchpeers from cluster master: %w", err)
 	}
 
 	foundNode, err := findNode(nodeFQDN, nodes, role)
@@ -208,7 +207,7 @@ func (b *backend) credsReadHandlerMulti(ctx context.Context, req *logical.Reques
 	username := fmt.Sprintf("%s_%s", userPrefix, userUUID)
 	passwd, err := generateUserPassword(role)
 	if err != nil {
-		return nil, errwrap.Wrapf("error generating new password: {{err}}", err)
+		return nil, fmt.Errorf("error generating new password: %w", err)
 	}
 	opts := splunk.CreateUserOptions{
 		Name:       username,

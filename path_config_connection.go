@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/errwrap"
-	"github.com/hashicorp/vault/helper/certutil"
-	"github.com/hashicorp/vault/logical"
-	"github.com/hashicorp/vault/logical/framework"
+	"github.com/hashicorp/vault/sdk/framework"
+	"github.com/hashicorp/vault/sdk/helper/certutil"
+	"github.com/hashicorp/vault/sdk/logical"
 )
 
 // pathConfigConnection returns a configured framework.Path setup to
@@ -17,62 +16,62 @@ func (b *backend) pathConfigConnection() *framework.Path {
 	return &framework.Path{
 		Pattern: fmt.Sprintf("config/%s", framework.GenericNameRegex("name")),
 		Fields: map[string]*framework.FieldSchema{
-			"name": &framework.FieldSchema{
+			"name": {
 				Type:        framework.TypeString,
 				Description: "Name of the Splunk connection.",
 			},
-			"username": &framework.FieldSchema{
+			"username": {
 				Type:        framework.TypeString,
 				Description: "Admin user with permission to create new accounts.",
 			},
-			"password": &framework.FieldSchema{
+			"password": {
 				Type:        framework.TypeString,
 				Description: "Admin password.",
 			},
-			"url": &framework.FieldSchema{
+			"url": {
 				Type:        framework.TypeString,
 				Description: "Splunk server URL.",
 			},
-			"is_standalone": &framework.FieldSchema{
+			"is_standalone": {
 				Type:        framework.TypeBool,
 				Description: `Whether this is a standalone or multi-node deployment.  Default: false`,
 				Default:     false,
 			},
-			"allowed_roles": &framework.FieldSchema{
+			"allowed_roles": {
 				Type: framework.TypeCommaStringSlice,
 				Description: trimIndent(`
 				Comma separated string or array of the role names allowed to get creds
 				from this Splunk connection. If empty, no roles are allowed.  If "*", all
 				roles are allowed.`),
 			},
-			"verify": &framework.FieldSchema{
+			"verify": {
 				Type:    framework.TypeBool,
 				Default: true,
 				Description: trimIndent(`
 				If true, the connection details are verified by actually connecting to
 				Splunk.	 Default: true`),
 			},
-			"insecure_tls": &framework.FieldSchema{
+			"insecure_tls": {
 				Type:    framework.TypeBool,
 				Default: false,
 				Description: trimIndent(`
 				Whether to use TLS but skip verification; has no effect if a CA
 				certificate is provided.  Default: false`),
 			},
-			"tls_min_version": &framework.FieldSchema{
+			"tls_min_version": {
 				Type:    framework.TypeString,
 				Default: "tls12",
 				Description: trimIndent(`
 				Minimum TLS version to use. Accepted values are "tls10", "tls11" or
 				"tls12".  Default: "tls12".`),
 			},
-			"pem_bundle": &framework.FieldSchema{
+			"pem_bundle": {
 				Type: framework.TypeString,
 				Description: trimIndent(`
 				PEM-format, concatenated unencrypted secret key and certificate, with
 				optional CA certificate.`),
 			},
-			"pem_json": &framework.FieldSchema{
+			"pem_json": {
 				Type: framework.TypeString,
 				Description: trimIndent(`
 				JSON containing a PEM-format, unencrypted secret key and certificate, with
@@ -80,11 +79,11 @@ func (b *backend) pathConfigConnection() *framework.Path {
 				PKI backend can be directly passed into this parameter.  If both this and
 				"pem_bundle" are specified, this will take precedence.`),
 			},
-			"root_ca": &framework.FieldSchema{
+			"root_ca": {
 				Type:        framework.TypeString,
 				Description: `PEM-format, concatenated CA certificates.`,
 			},
-			"connect_timeout": &framework.FieldSchema{
+			"connect_timeout": {
 				Type:        framework.TypeDurationSecond,
 				Default:     "30s",
 				Description: `The connection timeout to use.  Default: 30s.`,
@@ -130,7 +129,7 @@ func (b *backend) connectionDeleteHandler(ctx context.Context, req *logical.Requ
 	}
 
 	if err := req.Storage.Delete(ctx, fmt.Sprintf("config/%s", name)); err != nil {
-		return nil, errwrap.Wrapf("error reading connection configuration: {{err}}", err)
+		return nil, fmt.Errorf("error reading connection configuration: %w", err)
 	}
 
 	// XXXX WAL
@@ -151,7 +150,7 @@ func (b *backend) connectionWriteHandler(ctx context.Context, req *logical.Reque
 		var err error
 		config, err = connectionConfigLoad(ctx, req.Storage, name)
 		if err != nil {
-			return nil, errwrap.Wrapf("error reading connection configuration: {{err}}", err)
+			return nil, fmt.Errorf("error reading connection configuration: %w", err)
 		}
 	}
 
@@ -240,7 +239,7 @@ func (b *backend) connectionWriteHandler(ctx context.Context, req *logical.Reque
 	}
 
 	if err := config.store(ctx, req.Storage, name); err != nil {
-		return nil, errwrap.Wrapf("error writing connection configuration: {{err}}", err)
+		return nil, fmt.Errorf("error writing connection configuration: %w", err)
 	}
 
 	// if config.Verify {

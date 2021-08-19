@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/vault/logical"
-	"github.com/hashicorp/vault/logical/framework"
+	"github.com/hashicorp/vault/sdk/framework"
+	"github.com/hashicorp/vault/sdk/logical"
 )
 
 const (
@@ -23,11 +23,11 @@ func (b *backend) pathRoles() *framework.Path {
 	return &framework.Path{
 		Pattern: rolesPrefix + framework.GenericNameRegex("name"),
 		Fields: map[string]*framework.FieldSchema{
-			"name": &framework.FieldSchema{
+			"name": {
 				Type:        framework.TypeString,
 				Description: "Name of the role",
 			},
-			"connection": &framework.FieldSchema{
+			"connection": {
 				Type:        framework.TypeString,
 				Description: "Name of the Splunk connection this role acts on",
 			},
@@ -39,11 +39,11 @@ func (b *backend) pathRoles() *framework.Path {
 				Type:        framework.TypeDurationSecond,
 				Description: "Maximum time a credential is valid for",
 			},
-			"roles": &framework.FieldSchema{
+			"roles": {
 				Type:        framework.TypeCommaStringSlice,
 				Description: "Comma-separated string or list of Splunk roles.",
 			},
-			"allowed_server_roles": &framework.FieldSchema{
+			"allowed_server_roles": {
 				Type: framework.TypeCommaStringSlice,
 				Description: trimIndent(`
 				Comma-separated string or array of node type (glob) patterns that are allowed
@@ -51,25 +51,25 @@ func (b *backend) pathRoles() *framework.Path {
 				node types are allowed.`),
 				Default: []string{"*"},
 			},
-			"default_app": &framework.FieldSchema{
+			"default_app": {
 				Type: framework.TypeString,
 				Description: trimIndent(`
 				User default app.  Overrides the default app inherited from the user roles.`),
 			},
-			"email": &framework.FieldSchema{
+			"email": {
 				Type:        framework.TypeString,
 				Description: "User email address.",
 			},
-			"tz": &framework.FieldSchema{
+			"tz": {
 				Type:        framework.TypeString,
 				Description: "User time zone.",
 			},
-			"user_prefix": &framework.FieldSchema{
+			"user_prefix": {
 				Type:        framework.TypeString,
 				Description: "Prefix for creating new users.",
 				Default:     defaultUserPrefix,
 			},
-			"user_id_scheme": &framework.FieldSchema{
+			"user_id_scheme": {
 				Type: framework.TypeLowerCaseString,
 				Description: fmt.Sprintf("ID generation scheme (%s, %s, %s).  Default: %s",
 					userIDSchemeUUID4, userIDSchemeBase58_64, userIDSchemeBase58_128, userIDSchemeBase58_64),
