@@ -40,6 +40,7 @@ func TestBackend_basic(t *testing.T) {
 				testAccStepConfig(t),
 				testAccStepRole(t, "test", roleConfig),
 				testAccStepCredsRead(t, "test"),
+				testAccStepCredsReadMultiBadConfig(t, "test"),
 			},
 		})
 	}
@@ -273,6 +274,21 @@ func testAccStepCredsRead(t *testing.T, role string) logicaltest.TestStep {
 			assert.NilError(t, err)
 
 			// XXXX check that generated user is deleted if lease expires
+			return nil
+		},
+	}
+}
+
+func testAccStepCredsReadMultiBadConfig(t *testing.T, role string) logicaltest.TestStep {
+	return logicaltest.TestStep{
+		Operation: logical.ReadOperation,
+		Path:      "creds/" + role + "/someNonExistentNodeID",
+		ErrorOk:   true,
+		Check: func(resp *logical.Response) error {
+			if resp == nil {
+				return fmt.Errorf("response is nil")
+			}
+			assert.Error(t, resp.Error(), `host "someNonExistentNodeID" not found`)
 			return nil
 		},
 	}

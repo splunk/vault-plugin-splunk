@@ -162,12 +162,12 @@ func (b *backend) credsReadHandlerMulti(ctx context.Context, req *logical.Reques
 	}
 	// Check if isStandalone is set
 	if config.IsStandalone {
-		return nil, fmt.Errorf("expected is_standalone to be unset for connection: %q", role.Connection)
+		return logical.ErrorResponse("expected is_standalone to be unset for connection: %q", role.Connection), nil
 	}
 
 	// If role name isn't in allowed roles, send back a permission denied.
 	if !strutil.StrListContains(config.AllowedRoles, "*") && !strutil.StrListContainsGlob(config.AllowedRoles, name) {
-		return nil, fmt.Errorf("%q is not an allowed role for connection %q", name, role.Connection)
+		return logical.ErrorResponse("%q is not an allowed role for connection %q", name, role.Connection), nil
 	}
 
 	conn, err := b.ensureConnection(ctx, config)
@@ -183,7 +183,7 @@ func (b *backend) credsReadHandlerMulti(ctx context.Context, req *logical.Reques
 
 	foundNode, err := findNode(nodeFQDN, nodes, role)
 	if err != nil {
-		return nil, err
+		return logical.ErrorResponse(err.Error()), nil
 	}
 	if foundNode.Content.Host == "" {
 		return nil, fmt.Errorf("host field unexpectedly empty for %q", nodeFQDN)
@@ -278,6 +278,7 @@ func generateUserPassword(roleConfig *roleConfig) (string, error) {
 	return uuid.GenerateUUID()
 }
 
+// #nosec G101
 const pathCredsCreateHelpSyn = `
 Request Splunk credentials for a certain role.
 `
