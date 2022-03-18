@@ -1,8 +1,9 @@
 package splunk
 
 import (
-	"gotest.tools/assert"
 	"testing"
+
+	"gotest.tools/v3/assert"
 )
 
 func TestPropertiesService_GetKey(t *testing.T) {

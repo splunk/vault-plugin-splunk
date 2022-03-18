@@ -9,7 +9,7 @@ import (
 	logicaltest "github.com/hashicorp/vault/helper/testhelpers/logical"
 	"github.com/hashicorp/vault/sdk/logical"
 	"github.com/mitchellh/mapstructure"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 
 	"github.com/splunk/vault-plugin-splunk/clients/splunk"
 )

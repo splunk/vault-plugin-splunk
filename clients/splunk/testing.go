@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-uuid"
-	"github.com/ory/dockertest"
+	"github.com/ory/dockertest/v3"
 	"golang.org/x/oauth2"
 )
 
