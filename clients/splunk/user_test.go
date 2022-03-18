@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/go-uuid"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 const defaultAdminUser = "admin"

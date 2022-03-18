@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 
 	"github.com/splunk/vault-plugin-splunk/clients/splunk"
 )

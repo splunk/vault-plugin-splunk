@@ -6,7 +6,7 @@ import (
 
 	"github.com/fatih/structs"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestTimeMarshalling(t *testing.T) {

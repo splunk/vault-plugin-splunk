@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/mr-tron/base58"
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestGenerateShortUUID(t *testing.T) {

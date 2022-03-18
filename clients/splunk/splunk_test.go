@@ -3,7 +3,7 @@ package splunk
 import (
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 
 	"github.com/google/go-querystring/query"
 )
