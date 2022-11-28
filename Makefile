@@ -36,7 +36,7 @@ lint: dep
 
 .PHONY: dep
 dep:
-	./scripts/golangci-lint.sh -b $(GOBIN) v1.45.0
+	./scripts/golangci-lint.sh -b $(GOBIN) v1.50.1
 
 .PHONY: clean
 clean:

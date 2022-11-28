@@ -9,7 +9,7 @@ defaultenv: &defaultenv
 jobs:
   build:
     docker:
-      - image: cimg/go:1.18
+      - image: cimg/go:1.19
         <<: *defaultenv
       - image: splunk/splunk:latest
         user: root

@@ -21,3 +21,4 @@
 /test-results/
 _vendor-*
 *.idea
+.vscode
