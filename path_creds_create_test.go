@@ -2,7 +2,7 @@ package splunk
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -15,7 +15,7 @@ func Test_findNode(t *testing.T) {
 	nodes := make([]splunk.ServerInfoEntry, 0)
 
 	gp := filepath.Join("testdata", t.Name()+".json")
-	jsonResponseSearchDistributedPeers, err := ioutil.ReadFile(gp)
+	jsonResponseSearchDistributedPeers, err := os.ReadFile(gp)
 	assert.NilError(t, err)
 
 	err = json.Unmarshal(jsonResponseSearchDistributedPeers, &nodes)

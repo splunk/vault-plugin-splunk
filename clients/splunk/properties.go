@@ -3,7 +3,7 @@ package splunk
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -37,7 +37,7 @@ func getPropertiesUri(file string, stanza string, key string) string {
 }
 
 func (d stringResponseDecoder) Decode(resp *http.Response, v interface{}) error {
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
